@@ -11,7 +11,7 @@
       background-color: #f4f7fa;
       font-family: 'Arial', sans-serif;
     }
-    
+
     .header {
       background-color: #2C3E50;
       color: white;
@@ -39,8 +39,67 @@
       margin-top: 20px;
     }
 
+    /* Menambahkan scroll bar pada tabel */
+    .table-container {
+      max-height: 400px; /* Menentukan tinggi maksimum tabel */
+      overflow-y: auto; /* Menambahkan scroll vertikal jika data melebihi tinggi */
+      border: 1px solid #ddd; /* Menambahkan border pada tabel */
+      margin-top: 20px;
+    }
+
+    /* Animasi saat tombol diklik */
+    @keyframes buttonClickEffect {
+      0% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.1); /* Membesar sedikit */
+      }
+      100% {
+        transform: scale(1); /* Kembali ke ukuran semula */
+      }
+    }
+
+    /* Tombol yang menerima animasi */
+    .btn-custom {
+      background-color: #3498db; /* Biru cerah untuk tombol */
+      color: white;
+      border-radius: 5px; /* Rounded corners pada tombol */
+      transition: transform 0.3s ease; /* Transisi halus untuk animasi */
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .btn-custom:active {
+      animation: buttonClickEffect 0.4s ease; /* Menambahkan animasi ketika tombol diklik */
+    }
+
     .table th, .table td {
       text-align: center;
+    }
+
+    /* Animasi untuk pesan Terima kasih */
+    @keyframes thankYouMessage {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Pesan Terima kasih yang tersembunyi */
+    #thankYouMessage {
+      display: none; /* Menyembunyikan pesan awal */
+      font-size: 24px;
+      color: #2ecc71; /* Warna hijau yang menyegarkan */
+      font-weight: bold;
+      text-align: center;
+      margin-top: 20px;
+      animation: thankYouMessage 1s ease-out forwards;
     }
   </style>
 </head>
@@ -48,7 +107,7 @@
 
   <div class="container-fluid">
     <div class="header">
-      <img src="URL_LOGO_ANDA" alt="Logo Usaha" />
+      <img src="https://en.wikipedia.org/wiki/File:Ansor_emblem.png" alt="Logo Usaha" />
       <h1>Pendataan Usaha Anggota</h1>
       <p>Manajemen data usaha yang dimiliki oleh anggota kami</p>
     </div>
@@ -82,13 +141,11 @@
                 <input type="tel" class="form-control" id="nomorHp" placeholder="Nomor HP" required>
               </div>
 
-              <!-- Peta untuk tagging lokasi usaha -->
               <div class="mb-3">
                 <label for="lokasiMap" class="form-label">Pilih Lokasi di Peta</label>
                 <div id="map"></div>
               </div>
 
-              <!-- Button untuk mendapatkan lokasi pengguna -->
               <button type="button" class="btn btn-secondary" onclick="getLocation()">Dapatkan Lokasi Saya</button>
               <button type="submit" class="btn btn-custom">Tambah Usaha</button>
             </form>
@@ -97,32 +154,26 @@
       </div>
     </div>
 
-    <!-- Tabel Data Usaha -->
-    <div class="row mt-5">
-      <div class="col-md-12">
-        <div class="card">
-          <div class="card-header">
-            <h4>Daftar Usaha Anggota</h4>
-          </div>
-          <div class="card-body">
-            <table class="table table-bordered" id="usahanTable">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Nama Pemilik</th>
-                  <th>Nama Usaha</th>
-                  <th>Jenis Usaha</th>
-                  <th>Lokasi Usaha</th>
-                  <th>Nomor HP</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Data akan dimasukkan di sini -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    <!-- Pesan Terima Kasih -->
+    <div id="thankYouMessage">Terima Kasih Sahabat!</div>
+
+    <!-- Menambahkan scroll bar pada tabel -->
+    <div class="table-container">
+      <table class="table table-bordered" id="usahanTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nama Pemilik</th>
+            <th>Nama Usaha</th>
+            <th>Jenis Usaha</th>
+            <th>Lokasi Usaha</th>
+            <th>Nomor HP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data akan dimasukkan di sini -->
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -138,24 +189,19 @@
     let marker;
 
     function initMap() {
-      // Inisialisasi peta
-      map = L.map('map').setView([ -6.200000, 106.816666 ], 12); // Lokasi default (Jakarta)
+      map = L.map('map').setView([ -6.200000, 106.816666 ], 12);
 
-      // Menambahkan OpenStreetMap tile layer ke peta
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(map);
 
-      // Menambahkan marker yang dapat dipindahkan
       marker = L.marker([ -6.200000, 106.816666 ], { draggable: true }).addTo(map);
 
-      // Menangani pergerakan marker
       marker.on('dragend', function(event) {
         const latLng = marker.getLatLng();
         document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
       });
 
-      // Menambahkan event listener untuk klik pada peta
       map.on('click', function(e) {
         const latLng = e.latlng;
         marker.setLatLng(latLng);
@@ -181,6 +227,14 @@
     document.getElementById("usahanForm").addEventListener("submit", function(event) {
       event.preventDefault();
 
+      // Menambahkan animasi pada tombol
+      var button = document.querySelector(".btn-custom");
+      button.classList.add("clicked");
+
+      setTimeout(function() {
+        button.classList.remove("clicked");
+      }, 400); // Durasi animasi 400ms
+
       const namaPemilik = document.getElementById("namaPemilik").value;
       const namaUsaha = document.getElementById("namaUsaha").value;
       const jenisUsaha = document.getElementById("jenisUsaha").value;
@@ -188,7 +242,6 @@
       const nomorHp = document.getElementById("nomorHp").value;
       const lokasiMap = document.getElementById("lokasiUsaha").value;
 
-      // Kirim data ke Google Apps Script Web App
       fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec', {
         method: 'POST',
         body: new URLSearchParams({
@@ -204,6 +257,9 @@
       .then(data => {
         alert('Data telah disimpan!');
         fetchData(); // Update tabel setelah data berhasil disimpan
+
+        // Menampilkan pesan Terima Kasih dengan animasi
+        document.getElementById('thankYouMessage').style.display = 'block';
       })
       .catch(error => {
         alert('Terjadi kesalahan, coba lagi.');
@@ -212,7 +268,7 @@
 
     // Ambil data dari Google Sheets dan tampilkan di tabel
     function fetchData() {
-      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec') // Ganti dengan URL Google Apps Script Web App
+      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec')
         .then(response => response.json())
         .then(data => {
           const tableBody = document.querySelector("#usahanTable tbody");
