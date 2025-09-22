@@ -112,23 +112,23 @@
             <form id="usahanForm">
               <div class="mb-3">
                 <label for="namaPemilik" class="form-label">Nama Pemilik</label>
-                <input type="text" class="form-control" id="namaPemilik" placeholder="Ulinnuha" required>
+                <input type="text" class="form-control" id="namaPemilik" placeholder="Contoh: Ulinnuha" required>
               </div>
               <div class="mb-3">
                 <label for="namaUsaha" class="form-label">Nama Usaha</label>
-                <input type="text" class="form-control" id="namaUsaha" placeholder="Okebeb Telur Asin" required>
+                <input type="text" class="form-control" id="namaUsaha" placeholder="Contoh: Okebeb Telur Asin" required>
               </div>
               <div class="mb-3">
                 <label for="jenisUsaha" class="form-label">Jenis Usaha</label>
-                <input type="text" class="form-control" id="jenisUsaha" placeholder="Makanan/Minuman/Fasion/dll" required>
+                <input type="text" class="form-control" id="jenisUsaha" placeholder="Contoh: Makanan/Minuman/Fasion/dll" required>
               </div>
               <div class="mb-3">
                 <label for="lokasiUsaha" class="form-label">Lokasi Usaha</label>
-                <input type="text" class="form-control" id="lokasiUsaha" placeholder="Cukup klik Dapatkan Lokasi Saya" required>
+                <input type="text" class="form-control" id="lokasiUsaha" placeholder="Cukup Klik Dapatkan Lokasi Saya" required>
               </div>
               <div class="mb-3">
                 <label for="nomorHp" class="form-label">Nomor HP</label>
-                <input type="tel" class="form-control" id="nomorHp" placeholder="Nomor HP" required>
+                <input type="tel" class="form-control" id="nomorHp" placeholder="Contoh: 0838........" required>
               </div>
 
               <!-- Peta untuk input lokasi usaha -->
@@ -138,7 +138,7 @@
               </div>
 
               <button type="button" class="btn btn-secondary" onclick="getLocation()">Dapatkan Lokasi Saya</button>
-              <button type="submit" class="btn btn-custom">Tambah Usaha</button>
+              <button type="submit" class="btn btn-primary">Bismillah Cair</button>
             </form>
           </div>
         </div>
@@ -147,6 +147,19 @@
 
     <!-- Pesan Terima Kasih -->
     <div id="thankYouMessage">Terima Kasih Sahabat!</div>
+
+    <!-- Tombol untuk menampilkan Peta Sebaran (dipindah ke atas tabel) -->
+    <button id="showMapButton" class="btn btn-primary" onclick="toggleMapSebaran()">Tampilkan Peta Sebaran</button>
+
+    <!-- Peta Sebaran Usaha (sembunyi pada awalnya) -->
+    <div class="card mt-5" id="mapSebaranContainer" style="display: none;">
+      <div class="card-header">
+        <h4>Peta Sebaran Usaha Anggota</h4>
+      </div>
+      <div class="card-body">
+        <div id="mapSebaran" style="height: 500px; width: 100%; border-radius: 10px;"></div>
+      </div>
+    </div>
 
     <!-- Tabel Daftar Usaha Anggota dengan Scroll -->
     <div class="table-container">
@@ -167,18 +180,6 @@
       </table>
     </div>
 
-    <!-- Tombol untuk menampilkan Peta Sebaran -->
-    <button id="showMapButton" class="btn btn-primary" onclick="toggleMapSebaran()">Tampilkan Peta Sebaran</button>
-
-    <!-- Peta Sebaran Usaha (sembunyi pada awalnya) -->
-    <div class="card mt-5" id="mapSebaranContainer" style="display: none;">
-      <div class="card-header">
-        <h4>Peta Sebaran Usaha Anggota</h4>
-      </div>
-      <div class="card-body">
-        <div id="mapSebaran" style="height: 500px; width: 100%; border-radius: 10px;"></div>
-      </div>
-    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -193,40 +194,55 @@
     let markersGroup;
 
     function initMap() {
-      map = L.map('map').setView([ -6.200000, 106.816666 ], 12);
+  map = L.map('map').setView([ -6.200000, 106.816666 ], 12); // Lokasi default
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(map);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(map);
 
-      marker = L.marker([ -6.200000, 106.816666 ], { draggable: true }).addTo(map);
+  // Membuat marker di lokasi default
+  marker = L.marker([ -6.200000, 106.816666 ], { draggable: true }).addTo(map);
 
-      marker.on('dragend', function(event) {
-        const latLng = marker.getLatLng();
-        document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
-      });
+  marker.on('dragend', function(event) {
+    const latLng = marker.getLatLng();
+    document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
+  });
 
-      map.on('click', function(e) {
-        const latLng = e.latlng;
-        marker.setLatLng(latLng);
-        document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
-      });
-    }
+  map.on('click', function(e) {
+    const latLng = e.latlng;
+    marker.setLatLng(latLng);
+    document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
+  });
 
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
+  map.invalidateSize(); // Menghitung ulang ukuran peta
+}
 
-          map.setView([lat, lng], 12);
-          marker.setLatLng([lat, lng]);
-          document.getElementById('lokasiUsaha').value = `Latitude: ${lat}, Longitude: ${lng}`;
-        });
-      } else {
-        alert("Geolocation tidak didukung oleh browser ini.");
-      }
-    }
+function getLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+
+      // Set peta ke lokasi yang ditemukan
+      map.setView([lat, lng], 12);  // Memindahkan view peta ke lokasi pengguna
+
+      // Membuat atau memindahkan marker ke lokasi pengguna
+      marker.setLatLng([lat, lng]);
+
+      // Memperbarui input lokasi
+      document.getElementById('lokasiUsaha').value = `Latitude: ${lat}, Longitude: ${lng}`;
+
+      // Menambahkan popup untuk marker lokasi
+      marker.bindPopup("Lokasi Anda").openPopup();
+
+      map.invalidateSize(); // Memastikan peta mengupdate ukurannya setelah pindah
+    }, function() {
+      alert("Gagal mendapatkan lokasi Anda.");
+    });
+  } else {
+    alert("Geolocation tidak didukung oleh browser ini.");
+  }
+}
 
     document.getElementById("usahanForm").addEventListener("submit", function(event) {
       event.preventDefault();
@@ -332,19 +348,19 @@
 
     // Toggle map visibility when button is clicked
     function toggleMapSebaran() {
-      const mapContainer = document.getElementById('mapSebaranContainer');
-      const button = document.getElementById('showMapButton');
+  const mapContainer = document.getElementById('mapSebaranContainer');
+  const button = document.getElementById('showMapButton');
 
-      if (mapContainer.style.display === 'none') {
-        mapContainer.style.display = 'block';
-        button.textContent = 'Sembunyikan Peta Sebaran';
-        initMapSebaran(); // Initialize map only when it is shown
-      } else {
-        mapContainer.style.display = 'none';
-        button.textContent = 'Tampilkan Peta Sebaran';
-      }
-    }
-
+  if (mapContainer.style.display === 'none') {
+    mapContainer.style.display = 'block';
+    button.textContent = 'Sembunyikan Peta Sebaran';
+    initMapSebaran(); // Initialize map only when it is shown
+    map.invalidateSize(); // Mengupdate ukuran peta setelah ditampilkan
+  } else {
+    mapContainer.style.display = 'none';
+    button.textContent = 'Tampilkan Peta Sebaran';
+  }
+}
     // Toggle form visibility
     function toggleFormVisibility() {
       const form = document.getElementById('addBusinessForm');
