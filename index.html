@@ -189,7 +189,7 @@
       const lokasiMap = document.getElementById("lokasiUsaha").value;
 
       // Kirim data ke Google Apps Script Web App
-      fetch('URL_GOOGLE_APPS_SCRIPT_WEB_APP', {
+      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec', {
         method: 'POST',
         body: new URLSearchParams({
           'namaPemilik': namaPemilik,
@@ -212,7 +212,7 @@
 
     // Ambil data dari Google Sheets dan tampilkan di tabel
     function fetchData() {
-      fetch('https://script.google.com/macros/s/AKfycbwThf2ec717sgpTsaMff2K64BpupPzn4GBBU0wPOYewEkVbubEtTW2kuDemDB2yDCZUqg/exec') // Ganti dengan URL Google Apps Script Web App
+      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec') // Ganti dengan URL Google Apps Script Web App
         .then(response => response.json())
         .then(data => {
           const tableBody = document.querySelector("#usahanTable tbody");
