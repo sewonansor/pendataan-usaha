@@ -188,6 +188,7 @@
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-search@2.9.0/dist/leaflet-search.min.js"></script>
   <script>
+    let businesses = [];
     let map;
     let marker;
     let mapSebaran;
@@ -199,6 +200,122 @@
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
   }).addTo(map);
+
+   // Fungsi untuk mengambil data usaha
+    function fetchData() {
+      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec')
+        .then(response => response.json())
+        .then(data => {
+          businesses = data;
+          renderBusinesses(businesses);
+          initMap();
+        })
+        .catch(error => console.error('Error fetching map data:', error));
+    }
+
+    // Render Tabel Usaha
+    function renderBusinesses(filteredBusinesses) {
+      const tableBody = document.querySelector("#usahanTable tbody");
+      tableBody.innerHTML = "";
+
+      filteredBusinesses.forEach((row, index) => {
+        const rowHtml = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${row.namaPemilik}</td>
+            <td>${row.namaUsaha}</td>
+            <td>${row.jenisUsaha}</td>
+            <td>${row.lokasiUsaha}</td>
+            <td>${row.nomorHp}</td>
+            <td>
+              <button class="btn btn-warning btn-sm" onclick="editBusiness(${index})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteBusiness(${index})">Delete</button>
+            </td>
+          </tr>
+        `;
+        tableBody.innerHTML += rowHtml;
+      });
+    }
+
+    // Fungsi pencarian
+    function searchBusinesses() {
+      const searchNamaUsaha = document.getElementById("searchNamaUsaha").value.toLowerCase();
+      const searchJenisUsaha = document.getElementById("searchJenisUsaha").value.toLowerCase();
+      const searchLokasiUsaha = document.getElementById("searchLokasiUsaha").value.toLowerCase();
+      const searchNomorHp = document.getElementById("searchNomorHp").value.toLowerCase();
+
+      const filteredBusinesses = businesses.filter(business => {
+        return business.namaUsaha.toLowerCase().includes(searchNamaUsaha) &&
+               business.jenisUsaha.toLowerCase().includes(searchJenisUsaha) &&
+               business.lokasiUsaha.toLowerCase().includes(searchLokasiUsaha) &&
+               business.nomorHp.toLowerCase().includes(searchNomorHp);
+      });
+
+      renderBusinesses(filteredBusinesses);
+      updateMap(filteredBusinesses);
+    }
+
+    // Update Peta dengan Marker Berdasarkan Pencarian
+    function updateMap(filteredBusinesses) {
+      markersGroup.clearLayers();
+
+      filteredBusinesses.forEach(row => {
+        if (row.lokasiMap) {
+          let coords = row.lokasiMap.match(/-?\d+(\.\d+)?/g);
+          if (coords && coords.length >= 2) {
+            let lat = parseFloat(coords[0]);
+            let lng = parseFloat(coords[1]);
+            const gmapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+
+            let marker = L.marker([lat, lng])
+              .bindPopup(`
+                <b>${row.namaUsaha}</b><br>
+                ${row.namaPemilik}<br>
+                ${row.jenisUsaha}<br>
+                ${row.nomorHp}<br>
+                <a href="${gmapsUrl}" target="_blank">Lihat di Google Maps</a>
+              `); 
+
+            markersGroup.addLayer(marker);
+          }
+        }
+      });
+
+      mapSebaran.fitBounds(markersGroup.getBounds());
+    }
+
+    // Fungsi Edit Usaha
+    function editBusiness(index) {
+      alert('Edit usaha ke-' + index);
+    }
+
+    // Fungsi Delete Usaha
+    function deleteBusiness(index) {
+      if (confirm('Yakin ingin menghapus usaha ini?')) {
+        businesses.splice(index, 1); // Hapus data usaha dari array
+        renderBusinesses(businesses); // Update tabel
+        updateMap(businesses); // Update peta
+      }
+    }
+
+    // Toggle Map Sebaran
+    function toggleMapSebaran() {
+      const mapContainer = document.getElementById('mapSebaranContainer');
+      const button = document.getElementById('showMapButton');
+
+      if (mapContainer.style.display === 'none') {
+        mapContainer.style.display = 'block';
+        button.textContent = 'Sembunyikan Peta Sebaran';
+        initMap();
+      } else {
+        mapContainer.style.display = 'none';
+        button.textContent = 'Tampilkan Peta Sebaran';
+      }
+    }
+
+    window.onload = function() {
+      fetchData();
+    };
 
   // Membuat marker di lokasi default
   marker = L.marker([ -6.200000, 106.816666 ], { draggable: true }).addTo(map);
@@ -305,46 +422,55 @@ function getLocation() {
 
     // Peta Sebaran Usaha
     function initMapSebaran() {
-      mapSebaran = L.map('mapSebaran').setView([ -6.200000, 106.816666 ], 12);
+  mapSebaran = L.map('mapSebaran').setView([ -6.200000, 106.816666 ], 12);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(mapSebaran);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(mapSebaran);
 
-      markersGroup = L.markerClusterGroup();
-      mapSebaran.addLayer(markersGroup);
+  markersGroup = L.markerClusterGroup();
+  mapSebaran.addLayer(markersGroup);
 
-      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec')
-        .then(response => response.json())
-        .then(data => {
-          markersGroup.clearLayers();
+  fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec')
+    .then(response => response.json())
+    .then(data => {
+      markersGroup.clearLayers();
 
-          data.forEach(row => {
-            if (row.lokasiMap) {
-              let coords = row.lokasiMap.match(/-?\d+(\.\d+)?/g);
-              if (coords && coords.length >= 2) {
-                let lat = parseFloat(coords[0]);
-                let lng = parseFloat(coords[1]);
+      data.forEach(row => {
+        if (row.lokasiMap) {
+          let coords = row.lokasiMap.match(/-?\d+(\.\d+)?/g);
+          if (coords && coords.length >= 2) {
+            let lat = parseFloat(coords[0]);
+            let lng = parseFloat(coords[1]);
 
-                let marker = L.marker([lat, lng])
-                  .bindPopup(`<b>${row.namaUsaha}</b><br>${row.namaPemilik}<br>${row.jenisUsaha}<br>${row.nomorHp}`); 
-                markersGroup.addLayer(marker);
-              }
-            }
-          });
-          mapSebaran.fitBounds(markersGroup.getBounds());
+            // URL link ke Google Maps untuk lokasi tersebut
+            const gmapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
 
-          // Menambahkan fitur pencarian
-          let searchControl = new L.Control.Search({
-            layer: markersGroup,
-            propertyName: 'namaUsaha',
-            zoom: 16,
-            textPlaceholder: 'Cari usaha...'
-          });
-          mapSebaran.addControl(searchControl);
-        })
-        .catch(error => console.error('Error fetching map data:', error));
-    }
+            let marker = L.marker([lat, lng])
+              .bindPopup(`
+                <b>${row.namaUsaha}</b><br>
+                ${row.namaPemilik}<br>
+                ${row.jenisUsaha}<br>
+                ${row.nomorHp}<br>
+                <a href="${gmapsUrl}" target="_blank">Lihat di Google Maps</a>
+              `); 
+            markersGroup.addLayer(marker);
+          }
+        }
+      });
+      mapSebaran.fitBounds(markersGroup.getBounds());
+
+      // Menambahkan fitur pencarian
+      let searchControl = new L.Control.Search({
+        layer: markersGroup,
+        propertyName: 'namaUsaha',
+        zoom: 16,
+        textPlaceholder: 'Cari usaha...'
+      });
+      mapSebaran.addControl(searchControl);
+    })
+    .catch(error => console.error('Error fetching map data:', error));
+}
 
     // Toggle map visibility when button is clicked
     function toggleMapSebaran() {
@@ -375,6 +501,8 @@ function getLocation() {
       initMap();
       fetchData();
     };
+
+
   </script>
 </body>
 </html>
