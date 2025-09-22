@@ -8,91 +8,51 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <style>
     body {
-      background-color: #f4f7fa; /* Warna latar belakang yang lebih lembut */
+      background-color: #f4f7fa;
       font-family: 'Arial', sans-serif;
     }
-
-    /* Header animasi */
+    
     .header {
-      background-color: #2C3E50; /* Warna biru tua yang lebih elegan */
+      background-color: #2C3E50;
       color: white;
       padding: 30px;
       text-align: center;
-      border-radius: 10px; /* Rounded corners untuk header */
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Shadow agar terlihat lebih modern */
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .header img {
-      max-height: 60px; /* Menyesuaikan ukuran logo */
+      max-height: 60px;
       margin-bottom: 10px;
     }
-    
+
     .card {
       margin: 20px;
-      border-radius: 8px; /* Rounded corners untuk card */
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Shadow pada card */
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #map {
+      height: 400px;
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 20px;
     }
 
     .table th, .table td {
       text-align: center;
-    }
-
-    .table th {
-      background-color: #ecf0f1; /* Warna latar belakang header tabel yang soft */
-    }
-
-    .table-bordered td, .table-bordered th {
-      border-color: #dfe6e9; /* Border tabel lebih lembut */
-    }
-
-    /* Tombol dengan animasi hover */
-    .btn-custom {
-      background-color: #3498db; /* Biru cerah untuk tombol */
-      color: white;
-      border-radius: 5px; /* Rounded corners pada tombol */
-      transition: transform 0.3s ease; /* Transisi halus untuk animasi */
-    }
-
-    /* Efek animasi hanya ketika kursor hover */
-    .btn-custom:hover {
-      background-color: #2980b9; /* Warna biru lebih gelap saat hover */
-      transform: translateY(-5px); /* Efek gerakan sedikit ke atas */
-      animation: bounce 0.5s ease-out; /* Animasi bounce */
-    }
-
-    /* Keyframes untuk efek bounce */
-    @keyframes bounce {
-      0% {
-        transform: translateY(0);
-      }
-      50% {
-        transform: translateY(-10px); /* Pergerakan ke atas */
-      }
-      100% {
-        transform: translateY(0); /* Kembali ke posisi semula */
-      }
-    }
-
-    /* Kontainer untuk peta */
-    #map {
-      height: 400px; /* Ukuran peta */
-      width: 100%;
-      border-radius: 10px;
-      margin-top: 20px;
     }
   </style>
 </head>
 <body>
 
   <div class="container-fluid">
-    <!-- Header dengan Logo -->
     <div class="header">
       <img src="URL_LOGO_ANDA" alt="Logo Usaha" />
       <h1>Pendataan Usaha Anggota</h1>
       <p>Manajemen data usaha yang dimiliki oleh anggota kami</p>
     </div>
 
-    <!-- Form Input Data Usaha -->
     <div class="row">
       <div class="col-md-6 offset-md-3">
         <div class="card">
@@ -125,7 +85,7 @@
               <!-- Peta untuk tagging lokasi usaha -->
               <div class="mb-3">
                 <label for="lokasiMap" class="form-label">Pilih Lokasi di Peta</label>
-                <div id="map"></div> <!-- Peta akan ditampilkan di sini -->
+                <div id="map"></div>
               </div>
 
               <!-- Button untuk mendapatkan lokasi pengguna -->
@@ -137,7 +97,7 @@
       </div>
     </div>
 
-    <!-- Tabel Data Usaha (Data statis untuk contoh) -->
+    <!-- Tabel Data Usaha -->
     <div class="row mt-5">
       <div class="col-md-12">
         <div class="card">
@@ -145,7 +105,7 @@
             <h4>Daftar Usaha Anggota</h4>
           </div>
           <div class="card-body">
-            <table class="table table-bordered">
+            <table class="table table-bordered" id="usahanTable">
               <thead>
                 <tr>
                   <th>#</th>
@@ -153,26 +113,11 @@
                   <th>Nama Usaha</th>
                   <th>Jenis Usaha</th>
                   <th>Lokasi Usaha</th>
-                  <th>Nomor HP</th> <!-- Menambahkan kolom Nomor HP -->
+                  <th>Nomor HP</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>1</td>
-                  <td>John Doe</td>
-                  <td>Usaha A</td>
-                  <td>Retail</td>
-                  <td>Jakarta</td>
-                  <td>08123456789</td> <!-- Contoh Nomor HP -->
-                </tr>
-                <tr>
-                  <td>2</td>
-                  <td>Jane Smith</td>
-                  <td>Usaha B</td>
-                  <td>Restoran</td>
-                  <td>Bandung</td>
-                  <td>08223456789</td> <!-- Contoh Nomor HP -->
-                </tr>
+                <!-- Data akan dimasukkan di sini -->
               </tbody>
             </table>
           </div>
@@ -207,21 +152,13 @@
       // Menangani pergerakan marker
       marker.on('dragend', function(event) {
         const latLng = marker.getLatLng();
-        console.log('Lokasi dipilih: ' + latLng.lat + ', ' + latLng.lng);
-        
-        // Update lokasi di input Lokasi Usaha
         document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
       });
 
       // Menambahkan event listener untuk klik pada peta
       map.on('click', function(e) {
         const latLng = e.latlng;
-
-        // Tempatkan marker di lokasi yang diklik
         marker.setLatLng(latLng);
-        console.log('Lokasi dipilih (klik): ' + latLng.lat + ', ' + latLng.lng);
-        
-        // Update lokasi di input Lokasi Usaha
         document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
       });
     }
@@ -232,11 +169,8 @@
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
-          // Memperbarui peta ke lokasi pengguna
           map.setView([lat, lng], 12);
           marker.setLatLng([lat, lng]);
-
-          // Memperbarui input lokasi usaha dengan data GPS
           document.getElementById('lokasiUsaha').value = `Latitude: ${lat}, Longitude: ${lng}`;
         });
       } else {
@@ -244,9 +178,66 @@
       }
     }
 
-    // Inisialisasi peta saat halaman dimuat
+    document.getElementById("usahanForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const namaPemilik = document.getElementById("namaPemilik").value;
+      const namaUsaha = document.getElementById("namaUsaha").value;
+      const jenisUsaha = document.getElementById("jenisUsaha").value;
+      const lokasiUsaha = document.getElementById("lokasiUsaha").value;
+      const nomorHp = document.getElementById("nomorHp").value;
+      const lokasiMap = document.getElementById("lokasiUsaha").value;
+
+      // Kirim data ke Google Apps Script Web App
+      fetch('URL_GOOGLE_APPS_SCRIPT_WEB_APP', {
+        method: 'POST',
+        body: new URLSearchParams({
+          'namaPemilik': namaPemilik,
+          'namaUsaha': namaUsaha,
+          'jenisUsaha': jenisUsaha,
+          'lokasiUsaha': lokasiUsaha,
+          'nomorHp': nomorHp,
+          'lokasiMap': lokasiMap
+        })
+      })
+      .then(response => response.text())
+      .then(data => {
+        alert('Data telah disimpan!');
+        fetchData(); // Update tabel setelah data berhasil disimpan
+      })
+      .catch(error => {
+        alert('Terjadi kesalahan, coba lagi.');
+      });
+    });
+
+    // Ambil data dari Google Sheets dan tampilkan di tabel
+    function fetchData() {
+      fetch('https://script.google.com/macros/s/AKfycbwThf2ec717sgpTsaMff2K64BpupPzn4GBBU0wPOYewEkVbubEtTW2kuDemDB2yDCZUqg/exec') // Ganti dengan URL Google Apps Script Web App
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.querySelector("#usahanTable tbody");
+          tableBody.innerHTML = ""; // Kosongkan tabel sebelum diisi ulang
+
+          data.forEach((row, index) => {
+            const rowHtml = `
+              <tr>
+                <td>${index + 1}</td>
+                <td>${row.namaPemilik}</td>
+                <td>${row.namaUsaha}</td>
+                <td>${row.jenisUsaha}</td>
+                <td>${row.lokasiUsaha}</td>
+                <td>${row.nomorHp}</td>
+              </tr>
+            `;
+            tableBody.innerHTML += rowHtml;
+          });
+        })
+        .catch(error => console.error('Error fetching data: ', error));
+    }
+
     window.onload = function() {
       initMap();
+      fetchData(); // Ambil data dan tampilkan di tabel saat halaman dimuat
     };
   </script>
 </body>
