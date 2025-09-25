@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Pendataan Usaha Anggota</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet-search@2.9.0/dist/leaflet-search.min.css" />
-  <link rel="icon" type="image/webp" href="Ansor_emblem.webp" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+  <link rel="icon" type="image/webp" href="Ansor_emblem.webp">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 
   <style>
+    /* Gaya tetap sama seperti sebelumnya */
     .header {
       background-color: #2C3E50;
       color: white;
@@ -20,17 +20,46 @@
       text-align: center;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
     }
 
     .header img {
-      max-height: 60px;
+      max-height: 100px;
       margin-bottom: 10px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+    }
+
+    .header img:hover {
+      transform: scale(1.15);
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3)) brightness(1.1);
+    }
+
+    .header img:active {
+      transform: scale(1.1);
+      transition: all 0.1s ease;
+    }
+
+    .header h1 {
+      transition: all 0.3s ease;
+    }
+
+    .header:hover h1 {
+      letter-spacing: 0.5px;
     }
 
     .card {
       margin: 20px;
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
     #map {
@@ -45,6 +74,7 @@
       overflow-y: auto;
       border: 1px solid #ddd;
       margin-top: 20px;
+      border-radius: 8px;
     }
 
     #thankYouMessage {
@@ -54,19 +84,30 @@
       font-weight: bold;
       text-align: center;
       margin-top: 20px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     #showMapButton {
       margin-top: 20px;
       display: block;
       width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    #showMapButton:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
     #mapSebaranContainer {
       margin-top: 20px;
     }
 
-    /* Tombol Tambahkan Usaha */
     #addBusinessButton {
       margin-top: 20px;
       margin-bottom: 20px;
@@ -80,23 +121,38 @@
       cursor: pointer;
       border: none;
       transition: all 0.3s ease-in-out;
+      position: relative;
+      overflow: hidden;
     }
 
     #addBusinessButton:hover {
       background-color: #218838;
       transform: scale(1.05);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
 
     #addBusinessButton:active {
       transform: scale(0.98);
     }
-    
-    /* Styling untuk pencarian dan filter (DISEMBUNYIKAN) */
-    .search-container {
-      display: none; /* Menyembunyikan container pencarian dan filter */
+
+    #addBusinessButton::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    #addBusinessButton:active::after {
+      width: 300px;
+      height: 300px;
     }
     
-    /* Styling untuk pencarian DataTables */
     .dataTables_wrapper .dataTables_filter {
       float: none;
       text-align: left;
@@ -106,21 +162,79 @@
     .dataTables_wrapper .dataTables_filter input {
       margin-left: 0;
       width: 300px;
+      transition: all 0.3s ease;
+      border-radius: 20px;
+      padding: 8px 15px;
+    }
+    
+    .dataTables_wrapper .dataTables_filter input:focus {
+      width: 350px;
+      box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
     }
     
     .dataTables_wrapper .dataTables_length {
       float: none;
       margin-bottom: 10px;
     }
+
+    #usahanTable tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    #usahanTable tbody tr:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.01);
+    }
+
+    /* Gaya untuk kontrol pencarian manual - dipindahkan ke kanan atas */
+    .custom-search-container {
+      position: absolute;
+      top: 10px;
+      right: 10px; /* Ubah dari left ke right */
+      z-index: 1000;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }
+    
+    .custom-search-input {
+      width: 300px;
+      padding: 8px 15px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      .header img {
+        max-height: 80px;
+      }
+      
+      .header img:hover {
+        transform: scale(1.1);
+      }
+      
+      .dataTables_wrapper .dataTables_filter input {
+        width: 100%;
+      }
+      
+      .dataTables_wrapper .dataTables_filter input:focus {
+        width: 100%;
+      }
+      
+      .custom-search-input {
+        width: 200px;
+      }
+    }
   </style>
 </head>
 <body>
-
-  <div class="container-fluid">
+ <div class="container-fluid">
     <div class="header">
-      <img src="Ansor_emblem.webp" alt="Logo GP Ansor" style="max-height: 100px; margin-bottom: 10px;" class="logo-interactive" />
+      <img src="Ansor_emblem.webp" alt="Logo GP Ansor" class="logo-interactive">
       <h1>Pendataan Usaha Anggota</h1>
-      <p>Manajemen data usaha yang dimiliki oleh anggota kami</p>
+      <p>Manjemen data usaha yang dimiliki oleh anggota kami</p>
     </div>
   </div>
 
@@ -196,33 +310,13 @@
         <h4>Peta Sebaran Usaha Anggota</h4>
       </div>
       <div class="card-body">
-        <div id="mapSebaran" style="height: 500px; width: 100%; border-radius: 10px;"></div>
-      </div>
-    </div>
-
-    <!-- Container untuk pencarian dan filter (DISEMBUNYIKAN) -->
-    <div class="search-container" style="display: none;">
-      <h5>Pencarian dan Filter Data</h5>
-      <div class="row">
-        <div class="col-md-4">
-          <input type="text" id="searchNamaPemilik" class="form-control search-input" placeholder="Cari berdasarkan nama pemilik...">
-        </div>
-        <div class="col-md-4">
-          <input type="text" id="searchNamaUsaha" class="form-control search-input" placeholder="Cari berdasarkan nama usaha...">
-        </div>
-        <div class="col-md-4">
-          <input type="text" id="searchJenisUsaha" class="form-control search-input" placeholder="Cari berdasarkan jenis usaha...">
+        <div id="mapSebaran" style="height: 500px; width: 100%; border-radius: 10px; position: relative;">
+            <!-- Kontrol pencarian manual - dipindahkan ke kanan atas -->
+            <div class="custom-search-container">
+                <input type="text" class="custom-search-input" id="mapSearchInput" placeholder="Cari: usaha, pemilik, jenis...">
+            </div>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md-6">
-          <input type="text" id="searchLokasiUsaha" class="form-control search-input" placeholder="Cari berdasarkan lokasi...">
-        </div>
-        <div class="col-md-6">
-          <input type="text" id="searchNomorHp" class="form-control search-input" placeholder="Cari berdasarkan nomor HP...">
-        </div>
-      </div>
-      <button class="btn btn-secondary mt-2" onclick="clearSearch()">Hapus Pencarian</button>
     </div>
 
     <!-- Tabel Daftar Usaha Anggota -->
@@ -309,21 +403,24 @@
     </div>
   </div>
 
+  <!-- JavaScript -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
-  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/leaflet-search@2.9.0/dist/leaflet-search.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
   <script>
+    // Variabel global
     let businesses = [];
     let map;
     let marker;
-    let mapSebaran;
+    let mapSebaran = null;
     let markersGroup;
     let dataTable;
+    let allMarkers = []; // Menyimpan semua marker untuk pencarian
 
     // Inisialisasi peta dan data saat halaman dimuat
     window.onload = function() {
@@ -332,13 +429,15 @@
     };
 
     function initMap() {
-      map = L.map('map').setView([-6.200000, 106.816666], 12); // Lokasi default
+      // Inisialisasi peta dengan koordinat pusat Indonesia
+      map = L.map('map').setView([-6.200000, 106.816666], 12);
 
+      // Tile layer OpenStreetMap
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
 
-      // Membuat marker di lokasi default
+      // Membuat marker yang dapat digeser
       marker = L.marker([-6.200000, 106.816666], { draggable: true }).addTo(map);
 
       marker.on('dragend', function(event) {
@@ -352,7 +451,8 @@
         document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
       });
 
-      map.invalidateSize(); // Menghitung ulang ukuran peta
+      // Memperbarui ukuran peta
+      map.invalidateSize();
     }
 
     function getLocation() {
@@ -361,21 +461,14 @@
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
 
-          // Set peta ke lokasi yang ditemukan
-          map.setView([lat, lng], 12);  // Memindahkan view peta ke lokasi pengguna
-
-          // Membuat atau memindahkan marker ke lokasi pengguna
+          // Set peta ke lokasi pengguna
+          map.setView([lat, lng], 15);
           marker.setLatLng([lat, lng]);
-
-          // Memperbarui input lokasi
           document.getElementById('lokasiUsaha').value = `Latitude: ${lat}, Longitude: ${lng}`;
-
-          // Menambahkan popup untuk marker lokasi
           marker.bindPopup("Lokasi Anda").openPopup();
-
-          map.invalidateSize(); // Memastikan peta mengupdate ukurannya setelah pindah
+          map.invalidateSize();
         }, function() {
-          alert("Gagal mendapatkan lokasi Anda.");
+          alert("Gagal mendapatkan lokasi Anda. Pastikan izin lokasi diaktifkan.");
         });
       } else {
         alert("Geolocation tidak didukung oleh browser ini.");
@@ -390,7 +483,7 @@
           businesses = data;
           renderBusinesses(businesses);
         })
-        .catch(error => console.error('Error fetching data: ', error));
+        .catch(error => console.error('Error fetching  ', error));
     }
 
     // Render Tabel Usaha dengan DataTables
@@ -433,20 +526,19 @@
 
     // Kirim WA Admin
     function kirimWAAdmin() {
-      var nama = document.getElementById("adminNama").value;
-      var alamat = document.getElementById("adminAlamat").value;
-      var kendala = document.getElementById("adminKendala").value;
+      const nama = document.getElementById("adminNama").value;
+      const alamat = document.getElementById("adminAlamat").value;
+      const kendala = document.getElementById("adminKendala").value;
 
       if (!nama || !alamat || !kendala) {
         alert("Harap isi semua field sebelum mengirim pesan!");
         return;
       }
 
-      // Ganti dengan nomor admin (format internasional tanpa +)
-      var adminNumber = "6283866675521";
-
-      var pesan = `Nama: ${nama}%0AAlamat: ${alamat}%0AKendala: ${kendala}`;
-      var url = `https://wa.me/${adminNumber}?text=${pesan}`;
+      // Nomor admin (format internasional tanpa +)
+      const adminNumber = "6283866675521";
+      const pesan = `Nama: ${encodeURIComponent(nama)}%0AAlamat: ${encodeURIComponent(alamat)}%0AKendala: ${encodeURIComponent(kendala)}`;
+      const url = `https://wa.me/${adminNumber}?text=${pesan}`;
 
       window.open(url, "_blank");
     }
@@ -460,7 +552,12 @@
       const jenisUsaha = document.getElementById("jenisUsaha").value;
       const lokasiUsaha = document.getElementById("lokasiUsaha").value;
       const nomorHp = document.getElementById("nomorHp").value;
-      const lokasiMap = document.getElementById("lokasiUsaha").value;
+
+      // Validasi nomor HP
+      if (!/^[0-9\-\+\s\(\)]+$/.test(nomorHp)) {
+        alert("Nomor HP hanya boleh berisi angka dan simbol (+, -, spasi, kurung)");
+        return;
+      }
 
       fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec', {
         method: 'POST',
@@ -470,7 +567,7 @@
           'jenisUsaha': jenisUsaha,
           'lokasiUsaha': lokasiUsaha,
           'nomorHp': nomorHp,
-          'lokasiMap': lokasiMap
+          'lokasiMap': lokasiUsaha
         })
       })
       .then(response => response.text())
@@ -478,6 +575,9 @@
         alert('Data telah disimpan!');
         fetchData(); // Update tabel setelah data berhasil disimpan
 
+        // Reset form
+        document.getElementById("usahanForm").reset();
+        
         // Menampilkan pesan Terima Kasih dengan animasi
         document.getElementById('thankYouMessage').style.display = 'block';
         setTimeout(() => {
@@ -485,12 +585,56 @@
         }, 3000);
       })
       .catch(error => {
-        alert('Terjadi kesalahan, coba lagi.');
+        console.error('Error:', error);
+        alert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
       });
     });
 
-    // Peta Sebaran Usaha
+    // Fungsi untuk mengekstrak koordinat dari berbagai format
+    function extractCoordinates(locationString) {
+      if (!locationString) return null;
+      
+      // Coba ekstrak dari format "Latitude: X, Longitude: Y"
+      let latMatch = locationString.match(/Latitude:\s*(-?\d+\.?\d*)/i);
+      let lngMatch = locationString.match(/Longitude:\s*(-?\d+\.?\d*)/i);
+      
+      if (latMatch && lngMatch) {
+        return {
+          lat: parseFloat(latMatch[1]),
+          lng: parseFloat(lngMatch[1])
+        };
+      }
+      
+      // Coba ekstrak dari format koordinat saja (dua angka desimal)
+      let coordMatch = locationString.match(/(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)/);
+      if (coordMatch && coordMatch.length >= 3) {
+        return {
+          lat: parseFloat(coordMatch[1]),
+          lng: parseFloat(coordMatch[2])
+        };
+      }
+      
+      // Coba ekstrak angka desimal saja
+      let numbers = locationString.match(/-?\d+\.?\d*/g);
+      if (numbers && numbers.length >= 2) {
+        return {
+          lat: parseFloat(numbers[0]),
+          lng: parseFloat(numbers[1])
+        };
+      }
+      
+      return null;
+    }
+
+    // Peta Sebaran Usaha dengan pencarian manual
     function initMapSebaran() {
+      // Hapus peta sebaran yang sudah ada jika ada
+      if (mapSebaran) {
+        mapSebaran.remove();
+        mapSebaran = null;
+      }
+
+      // Inisialisasi peta sebaran baru
       mapSebaran = L.map('mapSebaran').setView([-6.200000, 106.816666], 12);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -499,46 +643,119 @@
 
       markersGroup = L.markerClusterGroup();
       mapSebaran.addLayer(markersGroup);
+      allMarkers = []; // Reset array markers
 
       fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec')
         .then(response => response.json())
         .then(data => {
           markersGroup.clearLayers();
+          allMarkers = []; // Reset array markers
 
+          let validMarkersCount = 0;
+          
           data.forEach(row => {
             if (row.lokasiMap) {
-              let coords = row.lokasiMap.match(/-?\d+(\.\d+)?/g);
-              if (coords && coords.length >= 2) {
-                let lat = parseFloat(coords[0]);
-                let lng = parseFloat(coords[1]);
+              // Gunakan fungsi extractCoordinates yang baru
+              let coords = extractCoordinates(row.lokasiMap);
+              
+              if (coords && coords.lat && coords.lng) {
+                let lat = coords.lat;
+                let lng = coords.lng;
 
-                // URL link ke Google Maps untuk lokasi tersebut
-                const gmapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+                // Validasi koordinat (Indonesia sekitar -11 sampai 6 untuk latitude, 95 sampai 141 untuk longitude)
+                if (lat >= -11 && lat <= 6 && lng >= 95 && lng <= 141) {
+                  const gmapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
 
-                let marker = L.marker([lat, lng])
-                  .bindPopup(`
-                    <b>${row.namaUsaha}</b><br>
-                    ${row.namaPemilik}<br>
-                    ${row.jenisUsaha}<br>
-                    ${row.nomorHp}<br>
+                  // Buat marker dengan popup
+                  let marker = L.marker([lat, lng]).bindPopup(`
+                    <b>${row.namaUsaha || 'Tidak ada nama'}</b><br>
+                    <b>Pemilik:</b> ${row.namaPemilik || 'Tidak ada'}<br>
+                    <b>Jenis:</b> ${row.jenisUsaha || 'Tidak ada'}<br>
+                    <b>HP:</b> ${row.nomorHp || 'Tidak ada'}<br>
                     <a href="${gmapsUrl}" target="_blank">Lihat di Google Maps</a>
                   `);
-                markersGroup.addLayer(marker);
+
+                  // Simpan data di properti marker untuk pencarian
+                  marker.feature = {
+                    properties: {
+                      namaUsaha: row.namaUsaha || '',
+                      namaPemilik: row.namaPemilik || '',
+                      jenisUsaha: row.jenisUsaha || '',
+                      nomorHp: row.nomorHp || ''
+                    }
+                  };
+
+                  markersGroup.addLayer(marker);
+                  allMarkers.push(marker); // Simpan ke array untuk pencarian
+                  validMarkersCount++;
+                } else {
+                  console.warn('Koordinat di luar Indonesia untuk:', row.namaUsaha, 'Lokasi:', row.lokasiMap);
+                }
+              } else {
+                console.warn('Koordinat tidak valid untuk:', row.namaUsaha, 'Lokasi:', row.lokasiMap);
               }
+            } else {
+              console.warn('LokasiMap kosong untuk:', row.namaUsaha);
             }
           });
-          mapSebaran.fitBounds(markersGroup.getBounds());
+          
+          if (validMarkersCount > 0) {
+            mapSebaran.fitBounds(markersGroup.getBounds());
+            console.log(`Berhasil menampilkan ${validMarkersCount} marker di peta`);
+          } else {
+            // Jika tidak ada marker yang valid, tetap di lokasi default
+            mapSebaran.setView([-6.200000, 106.816666], 12);
+            console.warn('Tidak ada marker yang valid untuk ditampilkan');
+          }
 
-          // Menambahkan fitur pencarian
-          let searchControl = new L.Control.Search({
-            layer: markersGroup,
-            propertyName: 'namaUsaha',
-            zoom: 16,
-            textPlaceholder: 'Cari usaha...'
-          });
-          mapSebaran.addControl(searchControl);
+          // Setelah semua marker dimuat, tambahkan event listener untuk pencarian
+          setupMapSearch();
         })
-        .catch(error => console.error('Error fetching map data:', error));
+        .catch(error => console.error('Error fetching map ', error));
+    }
+
+    // Fungsi pencarian manual di peta
+    function setupMapSearch() {
+        const searchInput = document.getElementById('mapSearchInput');
+        
+        searchInput.addEventListener('input', function(e) {
+            const searchText = e.target.value.toLowerCase();
+            
+            if (searchText.length === 0) {
+                // Jika input kosong, jangan lakukan apa-apa, biarkan semua marker terlihat
+                return;
+            }
+
+            // Cari marker yang cocok
+            const matchingMarkers = allMarkers.filter(marker => {
+                const markerData = marker.feature?.properties || {};
+                
+                // Periksa apakah nilai adalah string sebelum memanggil toLowerCase
+                const namaUsaha = typeof markerData.namaUsaha === 'string' ? markerData.namaUsaha.toLowerCase() : '';
+                const namaPemilik = typeof markerData.namaPemilik === 'string' ? markerData.namaPemilik.toLowerCase() : '';
+                const jenisUsaha = typeof markerData.jenisUsaha === 'string' ? markerData.jenisUsaha.toLowerCase() : '';
+                const nomorHp = typeof markerData.nomorHp === 'string' ? markerData.nomorHp.toLowerCase() : '';
+                
+                return (
+                    namaUsaha.includes(searchText) ||
+                    namaPemilik.includes(searchText) ||
+                    jenisUsaha.includes(searchText) ||
+                    nomorHp.includes(searchText)
+                );
+            });
+
+            // Jika hanya ada 1 hasil, langsung fokus ke lokasi itu
+            if (matchingMarkers.length === 1) {
+                const latlng = matchingMarkers[0].getLatLng();
+                mapSebaran.setView(latlng, 16);
+                matchingMarkers[0].openPopup();
+            }
+            // Jika ada lebih dari 1 hasil, fokus ke area yang mencakup semua hasil
+            else if (matchingMarkers.length > 1) {
+                const group = L.featureGroup(matchingMarkers);
+                mapSebaran.fitBounds(group.getBounds());
+            }
+        });
     }
 
     // Toggle map visibility when button is clicked
@@ -550,7 +767,11 @@
         mapContainer.style.display = 'block';
         button.textContent = 'Sembunyikan Peta Sebaran';
         initMapSebaran(); // Initialize map only when it is shown
-        mapSebaran.invalidateSize(); // Mengupdate ukuran peta setelah ditampilkan
+        setTimeout(() => {
+          if (mapSebaran) {
+            mapSebaran.invalidateSize(); // Update ukuran peta setelah ditampilkan
+          }
+        }, 300);
       } else {
         mapContainer.style.display = 'none';
         button.textContent = 'Tampilkan Peta Sebaran';
@@ -562,6 +783,10 @@
       const form = document.getElementById('addBusinessForm');
       if (form.style.display === 'none') {
         form.style.display = 'block';
+        // Pastikan peta form di-update ukurannya
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 300);
       } else {
         form.style.display = 'none';
       }
