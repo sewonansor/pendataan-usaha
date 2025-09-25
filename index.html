@@ -8,9 +8,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
-  <link rel="icon" type="image/webp" href="Ansor_emblem.webp">
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-
+  <link rel="icon" type="image/webp" href="Ansor_emblem.webp">
   <style>
     /* Gaya tetap sama seperti sebelumnya */
     .header {
@@ -190,7 +189,7 @@
     .custom-search-container {
       position: absolute;
       top: 10px;
-      right: 10px; /* Ubah dari left ke right */
+      right: 10px;
       z-index: 1000;
       background: white;
       padding: 10px;
@@ -204,6 +203,37 @@
       border: 1px solid #ccc;
       border-radius: 20px;
       font-size: 14px;
+    }
+
+    /* Gaya untuk notifikasi */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 15px 20px;
+      border-radius: 8px;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 9999;
+      transform: translateX(120%);
+      transition: transform 0.3s ease;
+    }
+
+    .notification.show {
+      transform: translateX(0);
+    }
+
+    .notification.success {
+      background-color: #28a745;
+    }
+
+    .notification.error {
+      background-color: #dc3545;
+    }
+
+    .notification.info {
+      background-color: #17a2b8;
     }
 
     @media (max-width: 768px) {
@@ -311,7 +341,7 @@
       </div>
       <div class="card-body">
         <div id="mapSebaran" style="height: 500px; width: 100%; border-radius: 10px; position: relative;">
-            <!-- Kontrol pencarian manual - dipindahkan ke kanan atas -->
+            <!-- Kontrol pencarian manual -->
             <div class="custom-search-container">
                 <input type="text" class="custom-search-input" id="mapSearchInput" placeholder="Cari: usaha, pemilik, jenis...">
             </div>
@@ -403,6 +433,9 @@
     </div>
   </div>
 
+  <!-- Notifikasi -->
+  <div id="notification" class="notification"></div>
+
   <!-- JavaScript -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -411,8 +444,13 @@
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <!-- Tambahkan EmailJS SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
   <script>
+    // Inisialisasi EmailJS (Ganti dengan USER_ID kamu)
+    emailjs.init("-fNVxScb3ogGPFlhK");
+
     // Variabel global
     let businesses = [];
     let map;
@@ -421,6 +459,7 @@
     let markersGroup;
     let dataTable;
     let allMarkers = []; // Menyimpan semua marker untuk pencarian
+    let lastDataLength = 0; // Menyimpan panjang data sebelumnya untuk deteksi perubahan
 
     // Inisialisasi peta dan data saat halaman dimuat
     window.onload = function() {
@@ -480,6 +519,15 @@
       fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec')
         .then(response => response.json())
         .then(data => {
+          // Deteksi apakah ada data baru
+          if (data.length > lastDataLength) {
+            const newEntriesCount = data.length - lastDataLength;
+            showNotification(`Data baru masuk! ${newEntriesCount} entri baru ditambahkan.`, 'info');
+          }
+          
+          // Update lastDataLength
+          lastDataLength = data.length;
+          
           businesses = data;
           renderBusinesses(businesses);
         })
@@ -507,12 +555,34 @@
 
       // Inisialisasi atau refresh DataTable
       if ($.fn.DataTable.isDataTable('#usahanTable')) {
+        // Simpan status sorting sebelum menghancurkan
+        const currentOrder = dataTable.order();
+        const currentPage = dataTable.page();
+        const currentSearch = dataTable.search();
+        const currentLength = dataTable.page.len();
+        
+        // Simpan ke localStorage
+        localStorage.setItem('dataTableOrder', JSON.stringify(currentOrder));
+        localStorage.setItem('dataTablePage', currentPage);
+        localStorage.setItem('dataTableSearch', currentSearch);
+        localStorage.setItem('dataTableLength', currentLength);
+
         $('#usahanTable').DataTable().destroy();
       }
 
+      // Ambil status sorting dari localStorage jika ada
+      const savedOrder = JSON.parse(localStorage.getItem('dataTableOrder')) || [[0, 'asc']]; // Default ke kolom pertama, ASC
+      const savedPage = localStorage.getItem('dataTablePage') || 0;
+      const savedSearch = localStorage.getItem('dataTableSearch') || '';
+      const savedLength = localStorage.getItem('dataTableLength') || 10;
+
       dataTable = $('#usahanTable').DataTable({
-        "pageLength": 10,
+        "pageLength": parseInt(savedLength),
         "lengthMenu": [5, 10, 25, 50],
+        "order": savedOrder, // Gunakan sorting yang disimpan
+        "search": {
+          "search": savedSearch
+        },
         "language": {
           "search": "Cari:",
           "lengthMenu": "Tampilkan _MENU_ data per halaman",
@@ -522,6 +592,23 @@
           "infoFiltered": "(disaring dari _MAX_ total data)"
         }
       });
+
+      // Setelah inisialisasi, pindah ke halaman yang disimpan
+      dataTable.page(parseInt(savedPage)).draw('page');
+
+      // Kita tidak perlu memanggil setupColumnFilters() karena filter dihapus
+    }
+
+    // Fungsi untuk menampilkan notifikasi
+    function showNotification(message, type) {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = 'notification ' + type; // Tambahkan kelas tipe notifikasi
+      notification.classList.add('show');
+
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 5000); // Notifikasi hilang setelah 5 detik
     }
 
     // Kirim WA Admin
@@ -583,12 +670,39 @@
         setTimeout(() => {
           document.getElementById('thankYouMessage').style.display = 'none';
         }, 3000);
+
+        // Kirim notifikasi email
+        sendEmailNotification(namaPemilik, namaUsaha, jenisUsaha, lokasiUsaha, nomorHp);
       })
       .catch(error => {
         console.error('Error:', error);
-        alert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+        alert('Terima kesalahan saat menyimpan data. Silakan coba lagi.');
       });
     });
+
+    // Fungsi untuk mengirim notifikasi email
+    function sendEmailNotification(namaPemilik, namaUsaha, jenisUsaha, lokasiUsaha, nomorHp) {
+        // Parameter untuk template EmailJS
+        const templateParams = {
+            to_email: 'sewon.ansor@gmail.com',
+            from_name: 'Sistem Pendataan Usaha',
+            nama_pemilik: namaPemilik,
+            nama_usaha: namaUsaha,
+            jenis_usaha: jenisUsaha,
+            lokasi_usaha: lokasiUsaha,
+            nomor_hp: nomorHp
+        };
+
+        // Ganti dengan SERVICE_ID dan TEMPLATE_ID kamu
+        emailjs.send('service_ezkgvo7', 'template_1of3o98', templateParams)
+            .then(function(response) {
+                console.log('Email notifikasi berhasil dikirim!', response.status, response.text);
+                // Bisa tambahkan notifikasi sukses di sini jika diinginkan
+            }, function(error) {
+                console.error('Gagal mengirim email notifikasi:', error);
+                // Bisa tambahkan notifikasi error di sini jika diinginkan
+            });
+    }
 
     // Fungsi untuk mengekstrak koordinat dari berbagai format
     function extractCoordinates(locationString) {
