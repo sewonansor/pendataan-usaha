@@ -6,8 +6,8 @@
   <title>Pendataan Usaha Anggota</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.7.0/dist/MarkerCluster.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.7.0/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet-search@2.9.0/dist/leaflet-search.min.css" />
   <link rel="icon" type="image/webp" href="Ansor_emblem.webp" />
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
@@ -91,6 +91,11 @@
       transform: scale(0.98);
     }
     
+    /* Styling untuk pencarian dan filter (DISEMBUNYIKAN) */
+    .search-container {
+      display: none; /* Menyembunyikan container pencarian dan filter */
+    }
+    
     /* Styling untuk pencarian DataTables */
     .dataTables_wrapper .dataTables_filter {
       float: none;
@@ -158,6 +163,10 @@
                 <input type="text" class="form-control" id="jenisUsaha" placeholder="Contoh: Makanan/Minuman/Fasion/dll" required>
               </div>
               <div class="mb-3">
+                <label for="lokasiUsaha" class="form-label">Lokasi Usaha</label>
+                <input type="text" class="form-control" id="lokasiUsaha" placeholder="Cukup Klik Dapatkan Lokasi Saya" required>
+              </div>
+              <div class="mb-3">
                 <label for="nomorHp" class="form-label">Nomor HP</label>
                 <input type="tel" class="form-control" id="nomorHp" placeholder="Contoh: 0838........" required>
               </div>
@@ -166,12 +175,6 @@
               <div class="mb-3">
                 <label for="lokasiMap" class="form-label">Pilih Lokasi di Peta</label>
                 <div id="map"></div>
-              </div>
-
-              <!-- Input Lokasi Usaha dipindahkan ke sini (di atas tombol Dapatkan Lokasi Saya) -->
-              <div class="mb-3">
-                <label for="lokasiUsaha" class="form-label">Lokasi Usaha</label>
-                <input type="text" class="form-control" id="lokasiUsaha" placeholder="Koordinat akan muncul di sini setelah memilih lokasi di peta" required readonly>
               </div>
 
               <button type="button" class="btn btn-secondary" onclick="getLocation()">Dapatkan Lokasi Saya</button>
@@ -196,6 +199,31 @@
       <div class="card-body">
         <div id="mapSebaran" style="height: 500px; width: 100%; border-radius: 10px;"></div>
       </div>
+    </div>
+
+    <!-- Container untuk pencarian dan filter (DISEMBUNYIKAN) -->
+    <div class="search-container" style="display: none;">
+      <h5>Pencarian dan Filter Data</h5>
+      <div class="row">
+        <div class="col-md-4">
+          <input type="text" id="searchNamaPemilik" class="form-control search-input" placeholder="Cari berdasarkan nama pemilik...">
+        </div>
+        <div class="col-md-4">
+          <input type="text" id="searchNamaUsaha" class="form-control search-input" placeholder="Cari berdasarkan nama usaha...">
+        </div>
+        <div class="col-md-4">
+          <input type="text" id="searchJenisUsaha" class="form-control search-input" placeholder="Cari berdasarkan jenis usaha...">
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-6">
+          <input type="text" id="searchLokasiUsaha" class="form-control search-input" placeholder="Cari berdasarkan lokasi...">
+        </div>
+        <div class="col-md-6">
+          <input type="text" id="searchNomorHp" class="form-control search-input" placeholder="Cari berdasarkan nomor HP...">
+        </div>
+      </div>
+      <button class="btn btn-secondary mt-2" onclick="clearSearch()">Hapus Pencarian</button>
     </div>
 
     <!-- Tabel Daftar Usaha Anggota -->
@@ -231,14 +259,13 @@
             <li><b>Isi Nama Pemilik</b> dengan nama lengkap anggota.</li>
             <li><b>Isi Nama Usaha</b> sesuai usaha yang dijalankan.</li>
             <li><b>Pilih Jenis Usaha</b> (contoh: makanan, minuman, fashion, jasa, dll).</li>
-            <li><b>Isi Nomor HP</b> yang aktif agar bisa dihubungi.</li>
-            <li><b>Pilih Lokasi Usaha</b>:
+            <li><b>Isi Lokasi Usaha</b>:
               <ul>
                 <li>Klik peta untuk memilih lokasi, atau</li>
                 <li>Gunakan tombol <i>"Dapatkan Lokasi Saya"</i> agar otomatis.</li>
               </ul>
             </li>
-            <li>Koordinat lokasi akan muncul otomatis di field "Lokasi Usaha".</li>
+            <li><b>Isi Nomor HP</b> yang aktif agar bisa dihubungi.</li>
             <li>Setelah lengkap, klik tombol <b>"Bismillah Cuan"</b> untuk menyimpan data.</li>
             <li>Data akan muncul otomatis di tabel dan peta sebaran.</li>
           </ol>
@@ -286,7 +313,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.7.0/dist/leaflet.markercluster.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   <script src="https://unpkg.com/leaflet-search@2.9.0/dist/leaflet-search.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
@@ -391,22 +418,9 @@
         $('#usahanTable').DataTable().destroy();
       }
 
-      // Ambil status sortasi dari localStorage jika ada
-      let savedSort = localStorage.getItem('usahanTableSort');
-      let initialState = {};
-      
-      if (savedSort) {
-        try {
-          initialState = JSON.parse(savedSort);
-        } catch (e) {
-          console.error('Error parsing saved sort state:', e);
-        }
-      }
-
       dataTable = $('#usahanTable').DataTable({
         "pageLength": 10,
         "lengthMenu": [5, 10, 25, 50],
-        "stateSave": true, // Menyimpan state pencarian, halaman, dll
         "language": {
           "search": "Cari:",
           "lengthMenu": "Tampilkan _MENU_ data per halaman",
@@ -414,28 +428,7 @@
           "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
           "infoEmpty": "Tidak ada data tersedia",
           "infoFiltered": "(disaring dari _MAX_ total data)"
-        },
-        // Terapkan sortasi yang disimpan
-        "order": initialState.order || [[0, 'asc']],
-        "displayStart": initialState.start || 0
-      });
-
-      // Simpan status sortasi setiap kali berubah
-      dataTable.on('order.dt', function() {
-        const state = {
-          order: dataTable.order(),
-          start: dataTable.page.info().start
-        };
-        localStorage.setItem('usahanTableSort', JSON.stringify(state));
-      });
-
-      // Simpan status saat halaman berubah
-      dataTable.on('page.dt', function() {
-        const state = {
-          order: dataTable.order(),
-          start: dataTable.page.info().start
-        };
-        localStorage.setItem('usahanTableSort', JSON.stringify(state));
+        }
       });
     }
 
@@ -491,10 +484,6 @@
         setTimeout(() => {
           document.getElementById('thankYouMessage').style.display = 'none';
         }, 3000);
-        
-        // Reset form
-        document.getElementById("usahanForm").reset();
-        toggleFormVisibility();
       })
       .catch(error => {
         alert('Terjadi kesalahan, coba lagi.');
