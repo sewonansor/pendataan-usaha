@@ -91,14 +91,14 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    #showMapButton {
+    #showMapButton, #toggleTableButton {
       margin-top: 20px;
       display: block;
       width: 100%;
       transition: all 0.3s ease;
     }
 
-    #showMapButton:hover {
+    #showMapButton:hover, #toggleTableButton:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
@@ -334,6 +334,9 @@
     <!-- Tombol untuk menampilkan Peta Sebaran -->
     <button id="showMapButton" class="btn btn-primary" onclick="toggleMapSebaran()">Tampilkan Peta Sebaran</button>
 
+    <!-- Tombol untuk menampilkan/sembunyikan tabel -->
+    <button id="toggleTableButton" class="btn btn-secondary" onclick="toggleTable()">Sembunyikan Tabel</button>
+
     <!-- Peta Sebaran Usaha (sembunyi pada awalnya) -->
     <div class="card mt-5" id="mapSebaranContainer" style="display: none;">
       <div class="card-header">
@@ -350,7 +353,7 @@
     </div>
 
     <!-- Tabel Daftar Usaha Anggota -->
-    <div class="table-container">
+    <div class="table-container" id="tableContainer">
       <table class="table table-bordered table-striped" id="usahanTable">
         <thead>
           <tr>
@@ -449,7 +452,7 @@
 
   <script>
     // Inisialisasi EmailJS (Ganti dengan USER_ID kamu)
-    emailjs.init("-fNVxScb3ogGPFlhK");
+    emailjs.init("YOUR_USER_ID");
 
     // Variabel global
     let businesses = [];
@@ -694,7 +697,7 @@
         };
 
         // Ganti dengan SERVICE_ID dan TEMPLATE_ID kamu
-        emailjs.send('service_ezkgvo7', 'template_1of3o98', templateParams)
+        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
             .then(function(response) {
                 console.log('Email notifikasi berhasil dikirim!', response.status, response.text);
                 // Bisa tambahkan notifikasi sukses di sini jika diinginkan
@@ -889,6 +892,20 @@
       } else {
         mapContainer.style.display = 'none';
         button.textContent = 'Tampilkan Peta Sebaran';
+      }
+    }
+
+    // Toggle table visibility when button is clicked
+    function toggleTable() {
+      const tableContainer = document.getElementById('tableContainer');
+      const button = document.getElementById('toggleTableButton');
+
+      if (tableContainer.style.display === 'none') {
+        tableContainer.style.display = 'block';
+        button.textContent = 'Sembunyikan Tabel';
+      } else {
+        tableContainer.style.display = 'none';
+        button.textContent = 'Tampilkan Tabel';
       }
     }
 
