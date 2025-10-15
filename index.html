@@ -467,6 +467,192 @@
       background-color: rgba(13, 110, 253, 0.2) !important;
     }
 
+    /* FAQ Popup Styles */
+    .faq-popup-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 1000;
+    }
+
+    .faq-popup-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--secondary-color), #2980B9);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 24px;
+      position: relative;
+    }
+
+    .faq-popup-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .faq-popup-btn.active {
+      background: linear-gradient(135deg, var(--primary-color), #1a2530);
+    }
+
+    .faq-popup-content {
+      position: absolute;
+      bottom: 70px;
+      right: 0;
+      width: 300px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+
+    .faq-popup-content.active {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .faq-popup-header {
+      background: linear-gradient(135deg, var(--primary-color), #1a2530);
+      color: white;
+      padding: 15px;
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .faq-popup-header h5 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .faq-popup-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .faq-popup-body {
+      padding: 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .faq-popup-item {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .faq-popup-item:last-child {
+      border-bottom: none;
+    }
+
+    .faq-popup-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .faq-popup-item i {
+      margin-right: 10px;
+      font-size: 18px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .faq-popup-item.tutorial i {
+      color: var(--secondary-color);
+    }
+
+    .faq-popup-item.contact i {
+      color: var(--success-color);
+    }
+
+    .faq-popup-item.refresh i {
+      color: var(--warning-color);
+    }
+
+    /* FAQ Accordion Styles */
+    .faq-accordion .accordion-button {
+      font-weight: 600;
+      padding: 15px 20px;
+      background: linear-gradient(135deg, var(--secondary-color), #2980B9);
+      color: white;
+      border: none;
+      border-radius: 8px !important;
+      margin-bottom: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .faq-accordion .accordion-button:not(.collapsed) {
+      background: linear-gradient(135deg, var(--primary-color), #1a2530);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .faq-accordion .accordion-button:focus {
+      box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+      border: none;
+    }
+
+    .faq-accordion .accordion-body {
+      padding: 20px;
+      background-color: var(--light-color);
+      border-radius: 0 0 8px 8px;
+      border: 1px solid #e0e0e0;
+      border-top: none;
+    }
+
+    .faq-item {
+      margin-bottom: 10px;
+    }
+
+    .faq-question {
+      font-weight: 600;
+      color: var(--primary-color);
+      margin-bottom: 5px;
+    }
+
+    .faq-answer {
+      color: #666;
+      margin-bottom: 15px;
+      padding-left: 15px;
+      border-left: 3px solid var(--secondary-color);
+    }
+
+    /* Background refresh indicator */
+    .refresh-indicator {
+      position: fixed;
+      bottom: 90px;
+      right: 20px;
+      background: rgba(52, 152, 219, 0.9);
+      color: white;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .refresh-indicator.show {
+      opacity: 1;
+    }
+
     @media (max-width: 768px) {
       .header img {
         max-height: 80px;
@@ -508,6 +694,21 @@
         display: block;
         width: 100%;
         margin: 5px 0;
+      }
+      
+      .faq-popup-container {
+        bottom: 10px;
+        right: 10px;
+      }
+      
+      .faq-popup-content {
+        width: 280px;
+        right: -10px;
+      }
+      
+      .refresh-indicator {
+        bottom: 80px;
+        right: 10px;
       }
     }
   </style>
@@ -563,59 +764,6 @@
         <div class="stats-card other">
           <div class="stats-number" id="otherBusinesses">0</div>
           <div class="stats-label">Usaha Lainnya</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="row mb-4">
-      <div class="col-md-4">
-        <button class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#tutorialModal">
-          <i class="fas fa-book"></i> Tutorial
-        </button>
-      </div>
-      <div class="col-md-4">
-        <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#kontakAdminModal">
-          <i class="fas fa-phone"></i> Kontak Admin
-        </button>
-      </div>
-      <div class="col-md-4">
-        <button class="btn btn-secondary w-100" onclick="refreshData()">
-          <i class="fas fa-sync-alt"></i> Refresh Data
-        </button>
-      </div>
-    </div>
-
-    <!-- User Management Section (Admin Only) -->
-    <div class="user-management-section">
-      <div class="card">
-        <div class="card-header">
-          <h4><i class="fas fa-users-cog"></i> Manajemen User</h4>
-        </div>
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5>Daftar Pengguna</h5>
-            <button class="btn btn-primary" onclick="showAddUserModal()">
-              <i class="fas fa-user-plus"></i> Tambah User
-            </button>
-          </div>
-          <div class="table-container">
-            <table class="table table-bordered table-striped" id="usersTable">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Username</th>
-                  <th>Nama Lengkap</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Terakhir Login</th>
-                  <th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Data users akan dimasukkan di sini -->
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
     </div>
@@ -785,6 +933,40 @@
         </button>
       </div>
     </div>
+  </div>
+
+  <!-- FAQ Popup Container -->
+  <div class="faq-popup-container">
+    <div class="faq-popup-content" id="faqPopup">
+      <div class="faq-popup-header">
+        <h5><i class="fas fa-question-circle"></i> Bantuan Cepat</h5>
+        <button class="faq-popup-close" onclick="toggleFaqPopup()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="faq-popup-body">
+        <div class="faq-popup-item tutorial" onclick="showTutorialModal()">
+          <i class="fas fa-book"></i>
+          <span>Tutorial Penggunaan</span>
+        </div>
+        <div class="faq-popup-item contact" onclick="showContactModal()">
+          <i class="fas fa-headset"></i>
+          <span>Hubungi Admin</span>
+        </div>
+        <div class="faq-popup-item refresh" onclick="refreshData()">
+          <i class="fas fa-sync-alt"></i>
+          <span>Refresh Data</span>
+        </div>
+      </div>
+    </div>
+    <button class="faq-popup-btn" id="faqPopupBtn" onclick="toggleFaqPopup()">
+      <i class="fas fa-question"></i>
+    </button>
+  </div>
+
+  <!-- Background Refresh Indicator -->
+  <div class="refresh-indicator" id="refreshIndicator">
+    <i class="fas fa-sync-alt"></i> Data diperbarui
   </div>
 
   <!-- Modal Login -->
@@ -1018,100 +1200,176 @@
     </div>
   </div>
 
-  <!-- Modal Tutorial -->
+  <!-- Modal Tutorial FAQ -->
   <div class="modal fade" id="tutorialModal" tabindex="-1" aria-labelledby="tutorialLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header bg-info text-white">
-          <h5 class="modal-title" id="tutorialLabel"><i class="fas fa-book"></i> Tutorial Pengisian Form Usaha</h5>
+          <h5 class="modal-title" id="tutorialLabel"><i class="fas fa-question-circle"></i> FAQ & Tutorial Singkat</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
         </div>
         <div class="modal-body">
-          <div class="row">
-            <div class="col-md-6">
-              <div class="card mb-3">
-                <div class="card-body">
-                  <h5><i class="fas fa-user text-primary"></i> Data Pemilik</h5>
-                  <p>Isi dengan nama lengkap pemilik usaha yang terdaftar sebagai anggota GP Ansor.</p>
+          <div class="faq-accordion">
+            <div class="accordion" id="tutorialAccordion">
+              
+              <!-- FAQ 1 -->
+              <div class="accordion-item faq-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                    <i class="fas fa-user me-2"></i> Bagaimana cara mengisi data pemilik?
+                  </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                  <div class="accordion-body">
+                    <p>Isi dengan <strong>nama lengkap pemilik usaha</strong> yang terdaftar sebagai anggota GP Ansor.</p>
+                    <p class="text-muted mb-0">Contoh: Ulinnuha</p>
+                  </div>
                 </div>
               </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card mb-3">
-                <div class="card-body">
-                  <h5><i class="fas fa-store text-success"></i> Data Usaha</h5>
-                  <p>Isi nama usaha sesuai dengan yang dijalankan. Gunakan nama yang mudah dikenali.</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card mb-3">
-                <div class="card-body">
-                  <h5><i class="fas fa-tags text-warning"></i> Jenis Usaha</h5>
-                  <p>Pilih kategori yang paling sesuai dengan jenis usaha yang dijalankan.</p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6">
-              <div class="card mb-3">
-                <div class="card-body">
-                  <h5><i class="fas fa-map-marker-alt text-danger"></i> Lokasi Usaha</h5>
-                  <p>Tentukan lokasi dengan klik peta atau gunakan tombol "Dapatkan Lokasi Saya".</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div class="alert alert-success">
-            <h6><i class="fas fa-lightbulb"></i> Tips Penting:</h6>
-            <ul class="mb-0">
-              <li>Pastikan koneksi internet aktif saat mengirim data</li>
-              <li>Gunakan nomor HP yang aktif untuk memudahkan komunikasi</li>
-              <li>Data akan otomatis muncul di peta sebaran setelah disimpan</li>
-              <li>Admin dapat mengedit atau menghapus data jika diperlukan</li>
-            </ul>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Modal Kontak Admin -->
-  <div class="modal fade" id="kontakAdminModal" tabindex="-1" aria-labelledby="kontakAdminLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" id="kontakAdminLabel"><i class="fas fa-phone"></i> Kontak Admin via WhatsApp</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-        </div>
-        <div class="modal-body">
-          <form id="kontakAdminForm">
-            <div class="mb-3">
-              <label class="form-label">Nama</label>
-              <input type="text" id="adminNama" class="form-control" placeholder="Nama Anda" required>
+              <!-- FAQ 2 -->
+              <div class="accordion-item faq-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                    <i class="fas fa-store me-2"></i> Bagaimana mengisi nama usaha?
+                  </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                  <div class="accordion-body">
+                    <p>Isi <strong>nama usaha sesuai dengan yang dijalankan</strong>. Gunakan nama yang mudah dikenali.</p>
+                    <p class="text-muted mb-0">Contoh: Okebeb Telur Asin</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FAQ 3 -->
+              <div class="accordion-item faq-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                    <i class="fas fa-tags me-2"></i> Bagaimana memilih jenis usaha?
+                  </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                  <div class="accordion-body">
+                    <p>Pilih <strong>kategori yang paling sesuai</strong> dengan jenis usaha yang dijalankan.</p>
+                    <p class="text-muted mb-0">Pilihan: Makanan & Minuman, Fashion, Jasa, Retail, dll.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FAQ 4 -->
+              <div class="accordion-item faq-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                    <i class="fas fa-map-marker-alt me-2"></i> Bagaimana menentukan lokasi?
+                  </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                  <div class="accordion-body">
+                    <p><strong>Klik peta</strong> atau gunakan tombol <strong>"Dapatkan Lokasi Saya"</strong> untuk deteksi otomatis.</p>
+                    <p class="text-muted mb-0">Pastikan izin lokasi diaktifkan di browser Anda.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FAQ 5 -->
+              <div class="accordion-item faq-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                    <i class="fas fa-mobile-alt me-2"></i> Format nomor HP seperti apa?
+                  </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#tutorialAccordion">
+                  <div class="accordion-body">
+                    <p>Gunakan <strong>nomor HP yang aktif</strong> dengan format angka saja atau dengan kode negara.</p>
+                    <p class="text-muted mb-0">Contoh: 083812345678 atau +6283812345678</p>
+                  </div>
+                </div>
+              </div>
+
             </div>
-            <div class="mb-3">
-              <label class="form-label">Alamat</label>
-              <input type="text" id="adminAlamat" class="form-control" placeholder="Alamat Lengkap" required>
+          </div>
+
+          <!-- Tips Penting Section -->
+          <div class="mt-4 p-3 bg-light rounded">
+            <h6 class="text-primary mb-3"><i class="fas fa-lightbulb"></i> Tips Penting:</h6>
+            <div class="row">
+              <div class="col-md-6">
+                <ul class="small">
+                  <li>Pastikan koneksi internet aktif</li>
+                  <li>Gunakan browser terbaru</li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <ul class="small">
+                  <li>Data otomatis muncul di peta</li>
+                  <li>Admin dapat mengedit data</li>
+                </ul>
+              </div>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Kendala</label>
-              <textarea id="adminKendala" class="form-control" rows="3" placeholder="Jelaskan kendala yang dialami..." required></textarea>
-            </div>
-          </form>
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="button" class="btn btn-success" onclick="kirimWAAdmin()">
-            <i class="fab fa-whatsapp"></i> Kirim ke Admin
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+            <i class="fas fa-check"></i> Mengerti
           </button>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Modal Kontak Admin Ringkas -->
+  <div class="modal fade" id="kontakAdminModal" tabindex="-1" aria-labelledby="kontakAdminLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="kontakAdminLabel"><i class="fab fa-whatsapp"></i> Kontak Admin via WhatsApp</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> 
+            <strong>Langsung terhubung dengan Admin</strong> untuk bantuan teknis dan pertanyaan.
+          </div>
+          
+          <form id="kontakAdminForm">
+            <div class="mb-3">
+              <label class="form-label">Nama Lengkap *</label>
+              <input type="text" id="adminNama" class="form-control" placeholder="Nama Anda" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Jenis Kendala *</label>
+              <select class="form-select" id="adminJenisKendala" required>
+                <option value="">Pilih jenis kendala</option>
+                <option value="Teknis">Kendala Teknis</option>
+                <option value="Data">Kesalahan Data</option>
+                <option value="Fitur">Permintaan Fitur</option>
+                <option value="Lainnya">Lainnya</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Deskripsi Kendala *</label>
+              <textarea id="adminKendala" class="form-control" rows="3" placeholder="Jelaskan kendala yang dialami..." required></textarea>
+            </div>
+          </form>
+
+          <div class="mt-4 p-3 bg-light rounded">
+            <h6><i class="fas fa-clock"></i> Waktu Respon</h6>
+            <p class="small mb-0">Admin biasanya merespon dalam 1-2 jam pada jam kerja (08:00 - 17:00 WIB)</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            <i class="fas fa-times"></i> Batal
+          </button>
+          <button type="button" class="btn btn-success" onclick="kirimWAAdmin()">
+            <i class="fab fa-whatsapp"></i> Buka WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Footer dengan Gradient -->
   <footer class="mt-5 py-4" style="background: linear-gradient(135deg, var(--primary-color), #1a2530);">
     <div class="container">
@@ -1160,18 +1418,157 @@
     let selectedBusinesses = new Set();
     let currentDeleteAction = null;
 
+    // Variabel untuk optimasi auto-refresh
+    let refreshInterval;
+    let isUserActive = true;
+    let isFormOpen = false;
+
     // URL Google Apps Script Web App
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpZ23Xa2u6hgoSfWDUMZaC5ixf5JFzwQ0E-7UzQoOsyiiRY_z2S2u3GPGBx_iYdjmFEw/exec';
 
     // Inisialisasi peta dan data saat halaman dimuat
     window.onload = function() {
       initMap();
-      fetchData();
+      fetchData(true); // Load data pertama kali dengan spinner
       checkAdminStatus();
-      
-      // Auto refresh data setiap 30 detik
-      setInterval(fetchData, 30000);
+      setupUserActivityDetection();
+      startAutoRefresh();
     };
+
+    // ==================== OPTIMASI AUTO-REFRESH ====================
+
+    // Fungsi untuk memulai auto-refresh yang cerdas
+    function startAutoRefresh() {
+      // Refresh setiap 2 menit (120000 ms) dan hanya jika user aktif & form tidak terbuka
+      refreshInterval = setInterval(() => {
+        if (isUserActive && !isFetching && !isFormOpen) {
+          fetchDataSilent(); // Gunakan fetch silent untuk background refresh
+        }
+      }, 120000);
+    }
+
+    // Fungsi fetch data tanpa loading spinner (untuk background refresh)
+    async function fetchDataSilent() {
+      if (isFetching) return;
+      
+      isFetching = true;
+      // TIDAK memanggil showLoading(true) - tidak tampil loading spinner
+
+      try {
+        const response = await fetch(SCRIPT_URL + '?action=getBusinesses&t=' + new Date().getTime());
+        
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const data = await response.json();
+
+        // Deteksi data baru (hanya tampilkan notifikasi jika ada perubahan)
+        if (data.length > lastDataLength) {
+          const newEntriesCount = data.length - lastDataLength;
+          showBackgroundRefreshIndicator();
+        }
+        
+        lastDataLength = data.length;
+        businesses = data;
+        renderBusinesses(businesses);
+        updateStats(businesses);
+        
+      } catch (error) {
+        console.error('Error fetching data (background):', error);
+        // Tidak tampilkan error untuk background refresh
+      } finally {
+        isFetching = false;
+        // TIDAK memanggil showLoading(false)
+      }
+    }
+
+    // Fungsi fetch data dengan loading spinner (untuk aksi manual)
+    async function fetchData(showLoader = true) {
+      if (isFetching) return;
+      
+      isFetching = true;
+      if (showLoader) showLoading(true);
+
+      try {
+        const response = await fetch(SCRIPT_URL + '?action=getBusinesses&t=' + new Date().getTime());
+        
+        if (!response.ok) throw new Error('Network response was not ok');
+        
+        const data = await response.json();
+
+        // Deteksi data baru (hanya tampilkan notifikasi untuk aksi manual)
+        if (data.length > lastDataLength && showLoader) {
+          const newEntriesCount = data.length - lastDataLength;
+          showNotification(`${newEntriesCount} data baru ditambahkan!`, 'info');
+        }
+        
+        lastDataLength = data.length;
+        businesses = data;
+        renderBusinesses(businesses);
+        updateStats(businesses);
+        
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        if (showLoader) showNotification('Gagal memuat data', 'error');
+      } finally {
+        isFetching = false;
+        if (showLoader) showLoading(false);
+      }
+    }
+
+    // Setup deteksi aktivitas user
+    function setupUserActivityDetection() {
+      let activityTimer;
+      
+      const resetActivityTimer = () => {
+        isUserActive = true;
+        clearTimeout(activityTimer);
+        activityTimer = setTimeout(() => {
+          isUserActive = false; // User dianggap tidak aktif setelah 5 menit
+        }, 300000); // 5 menit
+      };
+      
+      // Event listeners untuk deteksi aktivitas
+      ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetActivityTimer, false);
+      });
+      
+      resetActivityTimer(); // Start timer
+    }
+
+    // Tampilkan indikator refresh background
+    function showBackgroundRefreshIndicator() {
+      const indicator = document.getElementById('refreshIndicator');
+      indicator.classList.add('show');
+      
+      setTimeout(() => {
+        indicator.classList.remove('show');
+      }, 3000);
+    }
+
+    // ==================== FUNGSI FAQ POPUP ====================
+
+    // Fungsi untuk toggle FAQ popup
+    function toggleFaqPopup() {
+      const popup = document.getElementById('faqPopup');
+      const button = document.getElementById('faqPopupBtn');
+      
+      popup.classList.toggle('active');
+      button.classList.toggle('active');
+    }
+
+    // Fungsi untuk menampilkan modal tutorial dari FAQ
+    function showTutorialModal() {
+      const tutorialModal = new bootstrap.Modal(document.getElementById('tutorialModal'));
+      tutorialModal.show();
+      toggleFaqPopup();
+    }
+
+    // Fungsi untuk menampilkan modal kontak dari FAQ
+    function showContactModal() {
+      const contactModal = new bootstrap.Modal(document.getElementById('kontakAdminModal'));
+      contactModal.show();
+      toggleFaqPopup();
+    }
 
     // ==================== FUNGSI SISTEM LOGIN ====================
 
@@ -1239,7 +1636,7 @@
           bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
           showAdminUI();
           fetchUsers(); // Load users data
-          fetchData(); // Refresh data untuk menampilkan kolom aksi
+          fetchData(false); // Refresh data tanpa loader
         } else {
           showNotification('Login gagal: ' + data.message, 'error');
         }
@@ -1257,7 +1654,7 @@
       localStorage.removeItem('adminToken');
       hideAdminUI();
       showNotification('Anda telah logout', 'info');
-      fetchData(); // Refresh data untuk menyembunyikan kolom aksi
+      fetchData(false); // Refresh data tanpa loader
     }
 
     // Fungsi untuk menampilkan modal login
@@ -1489,42 +1886,6 @@
 
     // ==================== FUNGSI DATA BUSINESS ====================
 
-    // Fungsi untuk mengambil data dari server
-    async function fetchData() {
-      if (isFetching) return;
-      
-      isFetching = true;
-      showLoading(true);
-
-      try {
-        const response = await fetch(SCRIPT_URL + '?action=getBusinesses&t=' + new Date().getTime());
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        
-        const data = await response.json();
-
-        // Deteksi data baru
-        if (data.length > lastDataLength) {
-          const newEntriesCount = data.length - lastDataLength;
-          showNotification(`${newEntriesCount} data baru ditambahkan!`, 'info');
-        }
-        
-        lastDataLength = data.length;
-        businesses = data;
-        renderBusinesses(businesses);
-        updateStats(businesses);
-        
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        showNotification('Gagal memuat data', 'error');
-      } finally {
-        isFetching = false;
-        showLoading(false);
-      }
-    }
-
     // Fungsi untuk render tabel businesses
     function renderBusinesses(data) {
       const tableBody = document.querySelector("#usahanTable tbody");
@@ -1628,7 +1989,7 @@
         if (data.status === 'success') {
           showNotification('Data berhasil diupdate!', 'success');
           bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
-          fetchData(); // Refresh data
+          fetchData(false); // Refresh data tanpa loader
         } else {
           showNotification('Gagal update: ' + data.message, 'error');
           if (data.message.includes('Akses ditolak')) {
@@ -1805,7 +2166,7 @@
           
           showNotification(message, 'success');
           bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
-          fetchData(); // Refresh data
+          fetchData(false); // Refresh data tanpa loader
           clearSelection();
         } else {
           showNotification('Gagal menghapus: ' + data.message, 'error');
@@ -1830,11 +2191,13 @@
       const form = document.getElementById('addBusinessForm');
       if (form.style.display === 'none') {
         form.style.display = 'block';
+        isFormOpen = true; // Set flag form terbuka
         setTimeout(() => {
           map.invalidateSize();
         }, 300);
       } else {
         form.style.display = 'none';
+        isFormOpen = false; // Set flag form tertutup
       }
     }
 
@@ -1875,9 +2238,12 @@
     // Fungsi untuk refresh data manual
     function refreshData() {
       showNotification('Memperbarui data...', 'info');
-      fetchData();
+      fetchData(true); // Dengan loader
       if (adminToken) {
         fetchUsers();
+      }
+      if (document.getElementById('faqPopup').classList.contains('active')) {
+        toggleFaqPopup();
       }
     }
 
@@ -2103,19 +2469,21 @@
       }, 5000);
     }
 
-    // Kirim WA Admin
+    // Kirim WA Admin (versi ringkas)
     function kirimWAAdmin() {
       const nama = document.getElementById("adminNama").value;
-      const alamat = document.getElementById("adminAlamat").value;
+      const jenisKendala = document.getElementById("adminJenisKendala").value;
       const kendala = document.getElementById("adminKendala").value;
 
-      if (!nama || !alamat || !kendala) {
-        alert("Harap isi semua field sebelum mengirim pesan!");
+      if (!nama || !jenisKendala || !kendala) {
+        showNotification("Harap isi semua field sebelum mengirim pesan!", "error");
         return;
       }
 
       const adminNumber = "6283866675521";
-      const pesan = `Halo Admin, saya ingin melaporkan kendala:%0A%0ANama: ${encodeURIComponent(nama)}%0AAlamat: ${encodeURIComponent(alamat)}%0AKendala: ${encodeURIComponent(kendala)}`;
+      const timestamp = new Date().toLocaleString('id-ID');
+      const pesan = `Halo Admin GP Ansor,%0A%0ASaya ingin melaporkan kendala:%0A%0A📋 *Jenis Kendala:* ${encodeURIComponent(jenisKendala)}%0A👤 *Nama:* ${encodeURIComponent(nama)}%0A📝 *Deskripsi:* ${encodeURIComponent(kendala)}%0A⏰ *Waktu:* ${encodeURIComponent(timestamp)}%0A%0ATerima kasih.`;
+      
       const url = `https://wa.me/${adminNumber}?text=${pesan}`;
 
       window.open(url, "_blank");
@@ -2123,6 +2491,8 @@
       // Reset form dan tutup modal
       document.getElementById("kontakAdminForm").reset();
       bootstrap.Modal.getInstance(document.getElementById('kontakAdminModal')).hide();
+      
+      showNotification("WhatsApp dibuka, silakan lanjutkan pengiriman pesan", "info");
     }
 
     // ==================== EVENT LISTENERS ====================
@@ -2177,7 +2547,7 @@
 
         if (result.status === 'success') {
           showNotification('Data berhasil disimpan!', 'success');
-          fetchData();
+          fetchData(false); // Refresh data tanpa loader
 
           document.getElementById("usahanForm").reset();
           
