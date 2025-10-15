@@ -933,6 +933,43 @@
         </button>
       </div>
     </div>
+
+    <!-- User Management Section -->
+    <div class="user-management-section mt-5">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4><i class="fas fa-users-cog"></i> Kelola User</h4>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5>Daftar Pengguna Sistem</h5>
+            <button class="btn btn-success" onclick="showAddUserModal()">
+              <i class="fas fa-user-plus"></i> Tambah User Baru
+            </button>
+          </div>
+          
+          <div class="table-responsive">
+            <table class="table table-bordered table-striped" id="usersTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Username</th>
+                  <th>Nama Lengkap</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Terakhir Login</th>
+                  <th>Tanggal Dibuat</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Data users akan dimasukkan di sini -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- FAQ Popup Container -->
@@ -997,7 +1034,7 @@
     </div>
   </div>
 
-  <!-- Modal Edit Usaha - Diperbaiki -->
+  <!-- Modal Edit Usaha -->
   <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -1433,6 +1470,9 @@
       checkAdminStatus();
       setupUserActivityDetection();
       startAutoRefresh();
+      
+      // Setup event listener untuk modal delete
+      document.getElementById('confirmDeleteButton').addEventListener('click', executeDelete);
     };
 
     // ==================== OPTIMASI AUTO-REFRESH ====================
@@ -1697,17 +1737,27 @@
 
     // Fungsi untuk mengambil data users
     function fetchUsers() {
-      if (!adminToken) return;
+      if (!adminToken) {
+        console.log('No admin token, skipping users fetch');
+        return;
+      }
 
+      showLoading(true);
+      
       fetch(`${SCRIPT_URL}?action=getUsers&token=${adminToken}`)
-        .then(response => response.json())
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
         .then(data => {
           if (data.status === 'success') {
             users = data.users;
             renderUsers(users);
           } else {
             showNotification('Gagal memuat data users: ' + data.message, 'error');
-            if (data.message.includes('Akses ditolak')) {
+            if (data.message.includes('Akses ditolak') || data.message.includes('Token tidak valid')) {
               logout();
             }
           }
@@ -1715,15 +1765,40 @@
         .catch(error => {
           console.error('Error fetching users:', error);
           showNotification('Gagal memuat data users', 'error');
+        })
+        .finally(() => {
+          showLoading(false);
         });
     }
 
     // Fungsi untuk render users table
     function renderUsers(usersData) {
       const tableBody = document.querySelector("#usersTable tbody");
+      
+      if (!tableBody) {
+        console.error('Users table body not found');
+        return;
+      }
+      
       tableBody.innerHTML = "";
 
+      if (!usersData || usersData.length === 0) {
+        tableBody.innerHTML = `
+          <tr>
+            <td colspan="8" class="text-center text-muted py-4">
+              <i class="fas fa-users fa-2x mb-3"></i><br>
+              Belum ada data user
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
       usersData.forEach((user, index) => {
+        // Format tanggal
+        const createdDate = user.tanggalDibuat ? new Date(user.tanggalDibuat).toLocaleDateString('id-ID') : '-';
+        const lastLogin = user.terakhirLogin ? new Date(user.terakhirLogin).toLocaleString('id-ID') : '-';
+
         const rowHtml = `
           <tr>
             <td>${index + 1}</td>
@@ -1731,7 +1806,8 @@
             <td>${escapeHtml(user.namaLengkap)}</td>
             <td><span class="badge ${user.role === 'admin' ? 'bg-primary' : 'bg-secondary'}">${user.role}</span></td>
             <td><span class="badge ${user.status === 'active' ? 'bg-success' : 'bg-danger'}">${user.status}</span></td>
-            <td>${user.terakhirLogin || '-'}</td>
+            <td>${lastLogin}</td>
+            <td>${createdDate}</td>
             <td class="action-buttons">
               <button class="btn btn-warning btn-action" onclick="showEditUserModal(${JSON.stringify(user).replace(/"/g, '&quot;')})">
                 <i class="fas fa-edit"></i> Edit
@@ -1756,10 +1832,10 @@
         "language": {
           "search": "Cari:",
           "lengthMenu": "Tampilkan _MENU_ data per halaman",
-          "zeroRecords": "Tidak ada data yang ditemukan",
+          "zeroRecords": "Tidak ada data user yang ditemukan",
           "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
-          "infoEmpty": "Tidak ada data tersedia",
-          "infoFiltered": "(disaring dari _MAX_ total data)"
+          "infoEmpty": "Tidak ada data user tersedia",
+          "infoFiltered": "(disaring dari _MAX_ total user)"
         }
       });
     }
@@ -1817,6 +1893,11 @@
       const role = document.getElementById('editUserRole').value;
       const status = document.getElementById('editUserStatus').value;
       const keterangan = document.getElementById('editUserKeterangan').value;
+
+      if (!namaLengkap || !role) {
+        showNotification('Nama lengkap dan role wajib diisi!', 'error');
+        return;
+      }
 
       const formData = new URLSearchParams({
         action: 'updateUser',
@@ -1947,6 +2028,8 @@
       });
     }
 
+    // ==================== FUNGSI EDIT BUSINESS ====================
+
     // Fungsi untuk menampilkan modal edit business
     function showEditModal(business) {
       document.getElementById('editRowId').value = business.rowId;
@@ -1968,16 +2051,28 @@
     // Fungsi untuk update business
     function updateBusiness() {
       const rowId = document.getElementById('editRowId').value;
+      const namaPemilik = document.getElementById('editNamaPemilik').value;
+      const namaUsaha = document.getElementById('editNamaUsaha').value;
+      const jenisUsaha = document.getElementById('editJenisUsaha').value;
+      const nomorHp = document.getElementById('editNomorHp').value;
+      const lokasiUsaha = document.getElementById('editLokasiUsaha').value;
+
+      // Validasi input
+      if (!namaPemilik || !namaUsaha || !jenisUsaha || !nomorHp || !lokasiUsaha) {
+        showNotification('Semua field wajib diisi!', 'error');
+        return;
+      }
+
       const formData = new URLSearchParams({
         action: 'updateBusiness',
         token: adminToken,
         rowId: rowId,
-        namaPemilik: document.getElementById('editNamaPemilik').value,
-        namaUsaha: document.getElementById('editNamaUsaha').value,
-        jenisUsaha: document.getElementById('editJenisUsaha').value,
-        nomorHp: document.getElementById('editNomorHp').value,
-        lokasiUsaha: document.getElementById('editLokasiUsaha').value,
-        lokasiMap: document.getElementById('editLokasiUsaha').value
+        namaPemilik: namaPemilik,
+        namaUsaha: namaUsaha,
+        jenisUsaha: jenisUsaha,
+        nomorHp: nomorHp,
+        lokasiUsaha: lokasiUsaha,
+        lokasiMap: lokasiUsaha
       });
 
       fetch(SCRIPT_URL, {
@@ -2180,9 +2275,6 @@
         showNotification('Terjadi kesalahan saat menghapus', 'error');
       });
     }
-
-    // Event listener untuk tombol konfirmasi delete
-    document.getElementById('confirmDeleteButton').addEventListener('click', executeDelete);
 
     // ==================== FUNGSI UI/UX ====================
 
@@ -2569,6 +2661,24 @@
         submitButton.disabled = false;
         submitButton.textContent = originalText;
       }
+    });
+
+    // Event listener untuk form tambah user
+    document.getElementById('addUserForm')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      addUser();
+    });
+
+    // Event listener untuk form edit user
+    document.getElementById('editUserForm')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      updateUser();
+    });
+
+    // Event listener untuk form edit business
+    document.getElementById('editForm')?.addEventListener('submit', function(e) {
+      e.preventDefault();
+      updateBusiness();
     });
   </script>
 </body>
