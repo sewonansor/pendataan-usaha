@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pendataan Usaha Anggota</title>
+  <title>Pendataan Usaha Anggota GP Ansor</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
@@ -11,16 +11,43 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
   <link rel="icon" type="image/webp" href="Ansor_emblem.webp">
   <style>
-    /* Gaya tetap sama seperti sebelumnya */
+    :root {
+      --primary-color: #2C3E50;
+      --secondary-color: #3498DB;
+      --success-color: #28a745;
+      --warning-color: #FFC107;
+      --danger-color: #DC3545;
+      --light-color: #F8F9FA;
+      --dark-color: #343A40;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+    }
+    
     .header {
-      background-color: #2C3E50;
+      background: linear-gradient(135deg, var(--primary-color), #1a2530);
       color: white;
       padding: 30px;
       text-align: center;
       border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       position: relative;
       overflow: hidden;
+      margin-bottom: 25px;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0,0 L100,0 L100,100 Z" fill="rgba(255,255,255,0.05)"/></svg>');
+      background-size: cover;
     }
 
     .header img {
@@ -29,6 +56,8 @@
       transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       cursor: pointer;
       filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+      position: relative;
+      z-index: 1;
     }
 
     .header img:hover {
@@ -36,75 +65,172 @@
       filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.3)) brightness(1.1);
     }
 
-    .header img:active {
-      transform: scale(1.1);
-      transition: all 0.1s ease;
-    }
-
     .header h1 {
-      transition: all 0.3s ease;
+      font-weight: 700;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
     }
-
-    .header:hover h1 {
-      letter-spacing: 0.5px;
+    
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      position: relative;
+      z-index: 1;
     }
 
     .card {
-      margin: 20px;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      margin: 15px 0;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: none;
+      overflow: hidden;
     }
 
     .card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+    
+    .card-header {
+      background: linear-gradient(135deg, var(--secondary-color), #2980B9);
+      color: white;
+      font-weight: 600;
+      border-bottom: none;
+      padding: 15px 20px;
     }
 
-    #map {
+    #map, #mapSebaran {
       height: 400px;
       width: 100%;
       border-radius: 10px;
-      margin-top: 20px;
+      margin-top: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    #mapSebaran {
+      height: 500px;
     }
 
     .table-container {
-      max-height: 400px;
+      max-height: 500px;
       overflow-y: auto;
-      border: 1px solid #ddd;
+      border: 1px solid #e0e0e0;
       margin-top: 20px;
-      border-radius: 8px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .table th {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 15px;
+    }
+    
+    .table td {
+      padding: 10px 15px;
+      vertical-align: middle;
+    }
+    
+    .table tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    .table tbody tr:hover {
+      background-color: rgba(52, 152, 219, 0.05);
+    }
+
+    /* Admin Features */
+    .admin-only {
+      display: none;
+    }
+    
+    .logged-in .admin-only {
+      display: table-cell;
+    }
+    
+    .admin-section {
+      display: none;
+    }
+    
+    .logged-in .admin-section {
+      display: block;
+    }
+    
+    .action-buttons {
+      white-space: nowrap;
+    }
+    
+    .btn-action {
+      margin: 2px;
+      padding: 6px 12px;
+      font-size: 12px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    
+    .login-section {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+    }
+    
+    .admin-badge {
+      background: linear-gradient(135deg, var(--success-color), #20c997);
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
     #thankYouMessage {
       display: none;
       font-size: 24px;
-      color: #2ecc71;
+      color: var(--success-color);
       font-weight: bold;
       text-align: center;
       margin-top: 20px;
       animation: fadeIn 0.5s ease;
+      padding: 15px;
+      background: rgba(40, 167, 69, 0.1);
+      border-radius: 8px;
     }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
     }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
 
     #showMapButton, #toggleTableButton {
-      margin-top: 20px;
+      margin-top: 15px;
       display: block;
       width: 100%;
       transition: all 0.3s ease;
+      border-radius: 8px;
+      padding: 12px;
+      font-weight: 600;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
-    #showMapButton:hover, #toggleTableButton:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    
+    #showMapButton {
+      background: linear-gradient(135deg, var(--secondary-color), #2980B9);
+      border: none;
     }
-
-    #mapSebaranContainer {
-      margin-top: 20px;
+    
+    #toggleTableButton {
+      background: linear-gradient(135deg, #6C757D, #5A6268);
+      border: none;
     }
 
     #addBusinessButton {
@@ -112,63 +238,71 @@
       margin-bottom: 20px;
       display: block;
       width: 100%;
-      background-color: #28a745;
+      background: linear-gradient(135deg, var(--success-color), #20c997);
       color: white;
-      border-radius: 5px;
-      padding: 10px;
+      border-radius: 8px;
+      padding: 14px;
       font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
       border: none;
       transition: all 0.3s ease-in-out;
-      position: relative;
-      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
     }
 
     #addBusinessButton:hover {
-      background-color: #218838;
-      transform: scale(1.05);
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    #addBusinessButton:active {
-      transform: scale(0.98);
-    }
-
-    #addBusinessButton::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-
-    #addBusinessButton:active::after {
-      width: 300px;
-      height: 300px;
+      background: linear-gradient(135deg, #218838, #1e7e34);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+      animation: pulse 1s infinite;
     }
     
-    .dataTables_wrapper .dataTables_filter {
-      float: none;
-      text-align: left;
-      margin-bottom: 10px;
+    .btn-primary {
+      background: linear-gradient(135deg, var(--secondary-color), #2980B9);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 600;
     }
     
+    .btn-success {
+      background: linear-gradient(135deg, var(--success-color), #20c997);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 600;
+    }
+    
+    .btn-warning {
+      background: linear-gradient(135deg, var(--warning-color), #e0a800);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 600;
+      color: #212529;
+    }
+    
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger-color), #c82333);
+      border: none;
+      border-radius: 6px;
+      padding: 10px 20px;
+      font-weight: 600;
+    }
+
     .dataTables_wrapper .dataTables_filter input {
       margin-left: 0;
       width: 300px;
       transition: all 0.3s ease;
       border-radius: 20px;
       padding: 8px 15px;
+      border: 1px solid #ced4da;
     }
     
     .dataTables_wrapper .dataTables_filter input:focus {
       width: 350px;
       box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+      border-color: var(--primary-color);
     }
     
     .dataTables_wrapper .dataTables_length {
@@ -176,16 +310,6 @@
       margin-bottom: 10px;
     }
 
-    #usahanTable tbody tr {
-      transition: all 0.2s ease;
-    }
-
-    #usahanTable tbody tr:hover {
-      background-color: #f8f9fa;
-      transform: scale(1.01);
-    }
-
-    /* Gaya untuk kontrol pencarian manual - dipindahkan ke kanan atas */
     .custom-search-container {
       position: absolute;
       top: 10px;
@@ -194,18 +318,23 @@
       background: white;
       padding: 10px;
       border-radius: 8px;
-      box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
     
     .custom-search-input {
       width: 300px;
       padding: 8px 15px;
-      border: 1px solid #ccc;
+      border: 1px solid #ced4da;
       border-radius: 20px;
       font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    .custom-search-input:focus {
+      box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+      border-color: var(--primary-color);
     }
 
-    /* Gaya untuk notifikasi */
     .notification {
       position: fixed;
       top: 20px;
@@ -214,10 +343,11 @@
       border-radius: 8px;
       color: white;
       font-weight: bold;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
       z-index: 9999;
       transform: translateX(120%);
       transition: transform 0.3s ease;
+      max-width: 350px;
     }
 
     .notification.show {
@@ -225,15 +355,116 @@
     }
 
     .notification.success {
-      background-color: #28a745;
+      background: linear-gradient(135deg, var(--success-color), #20c997);
     }
 
     .notification.error {
-      background-color: #dc3545;
+      background: linear-gradient(135deg, var(--danger-color), #c82333);
     }
 
     .notification.info {
-      background-color: #17a2b8;
+      background: linear-gradient(135deg, var(--secondary-color), #2980B9);
+    }
+
+    .loading-spinner {
+      display: none;
+      text-align: center;
+      padding: 30px;
+    }
+    
+    .spinner-border {
+      width: 3rem;
+      height: 3rem;
+    }
+    
+    .form-control, .form-select {
+      border-radius: 8px;
+      padding: 10px 15px;
+      border: 1px solid #ced4da;
+      transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+      box-shadow: 0 0 0 0.2rem rgba(44, 62, 80, 0.25);
+      border-color: var(--primary-color);
+    }
+    
+    .modal-header {
+      border-bottom: none;
+      padding: 20px 25px 10px;
+    }
+    
+    .modal-footer {
+      border-top: none;
+      padding: 10px 25px 20px;
+    }
+    
+    .stats-card {
+      text-align: center;
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      margin-bottom: 20px;
+    }
+    
+    .stats-card.total {
+      background: linear-gradient(135deg, var(--primary-color), #1a2530);
+    }
+    
+    .stats-card.food {
+      background: linear-gradient(135deg, #E74C3C, #C0392B);
+    }
+    
+    .stats-card.service {
+      background: linear-gradient(135deg, #9B59B6, #8E44AD);
+    }
+    
+    .stats-card.other {
+      background: linear-gradient(135deg, #F39C12, #E67E22);
+    }
+    
+    .stats-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 10px 0;
+    }
+    
+    .stats-label {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+    
+    .user-management-section {
+      display: none;
+    }
+    
+    .logged-in .user-management-section {
+      display: block;
+    }
+
+    /* New styles for selection and bulk actions */
+    .row-checkbox {
+      margin: 0;
+      cursor: pointer;
+    }
+
+    .table-primary {
+      background-color: rgba(13, 110, 253, 0.1) !important;
+    }
+
+    #bulkActionsToolbar {
+      border-left: 4px solid #0d6efd;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Highlight untuk baris yang dipilih */
+    .table tbody tr.table-primary:hover {
+      background-color: rgba(13, 110, 253, 0.2) !important;
     }
 
     @media (max-width: 768px) {
@@ -241,8 +472,8 @@
         max-height: 80px;
       }
       
-      .header img:hover {
-        transform: scale(1.1);
+      .header h1 {
+        font-size: 1.8rem;
       }
       
       .dataTables_wrapper .dataTables_filter input {
@@ -256,59 +487,198 @@
       .custom-search-input {
         width: 200px;
       }
+      
+      .login-section {
+        position: relative;
+        top: auto;
+        right: auto;
+        text-align: center;
+        margin-bottom: 15px;
+      }
+      
+      .stats-number {
+        font-size: 2rem;
+      }
+      
+      .action-buttons {
+        white-space: normal;
+      }
+      
+      .btn-action {
+        display: block;
+        width: 100%;
+        margin: 5px 0;
+      }
     }
   </style>
 </head>
 <body>
- <div class="container-fluid">
+  <div class="container-fluid">
     <div class="header">
+      <div class="login-section">
+        <div id="loginSection">
+          <button class="btn btn-outline-light btn-sm" onclick="showLoginModal()">
+            <i class="fas fa-lock"></i> Login Admin
+          </button>
+        </div>
+        <div id="adminSection" style="display: none;">
+          <span class="admin-badge" id="adminBadge">Admin</span>
+          <button class="btn btn-outline-light btn-sm ms-2" onclick="showUserManagement()">
+            <i class="fas fa-users"></i> Kelola User
+          </button>
+          <button class="btn btn-outline-light btn-sm ms-2" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </div>
+      
       <img src="Ansor_emblem.webp" alt="Logo GP Ansor" class="logo-interactive">
       <h1>Pendataan Usaha Anggota</h1>
-      <p>Manjemen data usaha yang dimiliki oleh anggota kami</p>
+      <p>Manajemen data usaha yang dimiliki oleh anggota GP Ansor</p>
     </div>
   </div>
 
   <div class="container mt-4">
+    <!-- Statistik -->
+    <div class="row mb-4" id="statsContainer">
+      <div class="col-md-3 col-sm-6">
+        <div class="stats-card total">
+          <div class="stats-number" id="totalBusinesses">0</div>
+          <div class="stats-label">Total Usaha</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stats-card food">
+          <div class="stats-number" id="foodBusinesses">0</div>
+          <div class="stats-label">Usaha Makanan</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stats-card service">
+          <div class="stats-number" id="serviceBusinesses">0</div>
+          <div class="stats-label">Usaha Jasa</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="stats-card other">
+          <div class="stats-number" id="otherBusinesses">0</div>
+          <div class="stats-label">Usaha Lainnya</div>
+        </div>
+      </div>
+    </div>
+
     <div class="row mb-4">
-      <div class="col-6">
+      <div class="col-md-4">
         <button class="btn btn-info w-100" data-bs-toggle="modal" data-bs-target="#tutorialModal">
-          📘 Tutorial
+          <i class="fas fa-book"></i> Tutorial
         </button>
       </div>
-      <div class="col-6">
+      <div class="col-md-4">
         <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#kontakAdminModal">
-          📞 Kontak Admin
+          <i class="fas fa-phone"></i> Kontak Admin
+        </button>
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-secondary w-100" onclick="refreshData()">
+          <i class="fas fa-sync-alt"></i> Refresh Data
         </button>
       </div>
     </div>
 
-    <!-- Tombol untuk menambahkan usaha -->
-    <button id="addBusinessButton" onclick="toggleFormVisibility()">Tambahkan Usaha</button>
+    <!-- User Management Section (Admin Only) -->
+    <div class="user-management-section">
+      <div class="card">
+        <div class="card-header">
+          <h4><i class="fas fa-users-cog"></i> Manajemen User</h4>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5>Daftar Pengguna</h5>
+            <button class="btn btn-primary" onclick="showAddUserModal()">
+              <i class="fas fa-user-plus"></i> Tambah User
+            </button>
+          </div>
+          <div class="table-container">
+            <table class="table table-bordered table-striped" id="usersTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Username</th>
+                  <th>Nama Lengkap</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Terakhir Login</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Data users akan dimasukkan di sini -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <!-- Form Input Usaha (disembunyikan awalnya) -->
+    <!-- Tombol untuk menambahkan usaha -->
+    <button id="addBusinessButton" onclick="toggleFormVisibility()">
+      <i class="fas fa-plus-circle"></i> Tambahkan Usaha Baru
+    </button>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Memuat data...</span>
+      </div>
+      <p class="mt-2">Memuat data...</p>
+    </div>
+
+    <!-- Form Input Usaha -->
     <div class="row" id="addBusinessForm" style="display: none;">
-      <div class="col-md-6 offset-md-3">
+      <div class="col-md-8 offset-md-2">
         <div class="card">
           <div class="card-header">
-            <h4>Tambah Usaha Anggota</h4>
+            <h4><i class="fas fa-store"></i> Tambah Usaha Anggota</h4>
           </div>
           <div class="card-body">
             <form id="usahanForm">
-              <div class="mb-3">
-                <label for="namaPemilik" class="form-label">Nama Pemilik</label>
-                <input type="text" class="form-control" id="namaPemilik" placeholder="Contoh: Ulinnuha" required>
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="namaPemilik" class="form-label">Nama Pemilik *</label>
+                    <input type="text" class="form-control" id="namaPemilik" placeholder="Contoh: Ulinnuha" required>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="namaUsaha" class="form-label">Nama Usaha *</label>
+                    <input type="text" class="form-control" id="namaUsaha" placeholder="Contoh: Okebeb Telur Asin" required>
+                  </div>
+                </div>
               </div>
-              <div class="mb-3">
-                <label for="namaUsaha" class="form-label">Nama Usaha</label>
-                <input type="text" class="form-control" id="namaUsaha" placeholder="Contoh: Okebeb Telur Asin" required>
-              </div>
-              <div class="mb-3">
-                <label for="jenisUsaha" class="form-label">Jenis Usaha</label>
-                <input type="text" class="form-control" id="jenisUsaha" placeholder="Contoh: Makanan/Minuman/Fasion/dll" required>
-              </div>
-                <div class="mb-3">
-                <label for="nomorHp" class="form-label">Nomor HP</label>
-                <input type="tel" class="form-control" id="nomorHp" placeholder="Contoh: 0838........" required>
+              
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="jenisUsaha" class="form-label">Jenis Usaha *</label>
+                    <select class="form-select" id="jenisUsaha" required>
+                      <option value="">Pilih Jenis Usaha</option>
+                      <option value="Makanan & Minuman">Makanan & Minuman</option>
+                      <option value="Fashion & Pakaian">Fashion & Pakaian</option>
+                      <option value="Jasa & Servis">Jasa & Servis</option>
+                      <option value="Retail & Toko">Retail & Toko</option>
+                      <option value="Pertanian & Perikanan">Pertanian & Perikanan</option>
+                      <option value="Teknologi & Elektronik">Teknologi & Elektronik</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="mb-3">
+                    <label for="nomorHp" class="form-label">Nomor HP *</label>
+                    <input type="tel" class="form-control" id="nomorHp" placeholder="Contoh: 0838xxxxxxxx" required>
+                  </div>
+                </div>
               </div>
 
               <!-- Peta untuk input lokasi usaha -->
@@ -317,11 +687,17 @@
                 <div id="map"></div>
               </div>
               <div class="mb-3">
-                <label for="lokasiUsaha" class="form-label">Lokasi Usaha</label>
-                <input type="text" class="form-control" id="lokasiUsaha" placeholder="Cukup Klik Dapatkan Lokasi Saya" required>
+                <label for="lokasiUsaha" class="form-label">Lokasi Usaha *</label>
+                <input type="text" class="form-control" id="lokasiUsaha" placeholder="Klik peta atau gunakan tombol 'Dapatkan Lokasi Saya'" required>
               </div>
-              <button type="button" class="btn btn-secondary" onclick="getLocation()">Dapatkan Lokasi Saya</button>
-              <button type="submit" class="btn btn-primary">Bismillah Cuan</button>
+              <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <button type="button" class="btn btn-secondary me-md-2" onclick="getLocation()">
+                  <i class="fas fa-map-marker-alt"></i> Dapatkan Lokasi Saya
+                </button>
+                <button type="submit" class="btn btn-primary" id="submitButton">
+                  <i class="fas fa-paper-plane"></i> Bismillah Cuan
+                </button>
+              </div>
             </form>
           </div>
         </div>
@@ -329,18 +705,24 @@
     </div>
 
     <!-- Pesan Terima Kasih -->
-    <div id="thankYouMessage">Terima Kasih Sahabat!</div>
+    <div id="thankYouMessage">
+      <i class="fas fa-heart"></i> Terima Kasih Sahabat! Data telah tersimpan.
+    </div>
 
     <!-- Tombol untuk menampilkan Peta Sebaran -->
-    <button id="showMapButton" class="btn btn-primary" onclick="toggleMapSebaran()">Tampilkan Peta Sebaran</button>
+    <button id="showMapButton" class="btn btn-primary" onclick="toggleMapSebaran()">
+      <i class="fas fa-map"></i> Tampilkan Peta Sebaran
+    </button>
 
     <!-- Tombol untuk menampilkan/sembunyikan tabel -->
-    <button id="toggleTableButton" class="btn btn-secondary" onclick="toggleTable()">Sembunyikan Tabel</button>
+    <button id="toggleTableButton" class="btn btn-secondary" onclick="toggleTable()">
+      <i class="fas fa-table"></i> Sembunyikan Tabel
+    </button>
 
-    <!-- Peta Sebaran Usaha (sembunyi pada awalnya) -->
+    <!-- Peta Sebaran Usaha -->
     <div class="card mt-5" id="mapSebaranContainer" style="display: none;">
       <div class="card-header">
-        <h4>Peta Sebaran Usaha Anggota</h4>
+        <h4><i class="fas fa-map-marked-alt"></i> Peta Sebaran Usaha Anggota</h4>
       </div>
       <div class="card-body">
         <div id="mapSebaran" style="height: 500px; width: 100%; border-radius: 10px; position: relative;">
@@ -354,21 +736,285 @@
 
     <!-- Tabel Daftar Usaha Anggota -->
     <div class="table-container" id="tableContainer">
+      <!-- Bulk Actions Toolbar -->
+      <div class="admin-only mb-3" id="bulkActionsToolbar" style="display: none;">
+        <div class="card bg-light">
+          <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+              <span>
+                <i class="fas fa-check-circle text-primary"></i>
+                <span id="selectedItemsCount">0</span> data dipilih
+              </span>
+              <div>
+                <button class="btn btn-sm btn-outline-danger me-2" onclick="deleteSelectedBusinesses()">
+                  <i class="fas fa-trash"></i> Hapus yang Dipilih
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="clearSelection()">
+                  <i class="fas fa-times"></i> Batal Pilih
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <table class="table table-bordered table-striped" id="usahanTable">
         <thead>
           <tr>
+            <th class="admin-only" width="50">
+              <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
+            </th>
             <th>#</th>
             <th>Nama Pemilik</th>
             <th>Nama Usaha</th>
             <th>Jenis Usaha</th>
             <th>Lokasi Usaha</th>
             <th>Nomor HP</th>
+            <th class="admin-only">Aksi</th>
           </tr>
         </thead>
         <tbody>
           <!-- Data akan dimasukkan di sini -->
         </tbody>
       </table>
+      
+      <!-- Tombol Hapus Semua (Admin Only) -->
+      <div class="admin-only mt-3 text-end">
+        <button class="btn btn-danger" onclick="confirmDeleteAll()">
+          <i class="fas fa-trash-alt"></i> Hapus Semua Data
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Login -->
+  <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="loginModalLabel"><i class="fas fa-lock"></i> Login Admin</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <form id="loginForm">
+            <div class="mb-3">
+              <label for="username" class="form-label">Username</label>
+              <input type="text" class="form-control" id="username" placeholder="Masukkan username" required>
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input type="password" class="form-control" id="password" placeholder="Masukkan password" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-primary" onclick="login()">Login</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Edit Usaha - Diperbaiki -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title" id="editModalLabel"><i class="fas fa-edit"></i> Edit Data Usaha</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editForm">
+            <input type="hidden" id="editRowId">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editNamaPemilik" class="form-label">Nama Pemilik *</label>
+                  <input type="text" class="form-control" id="editNamaPemilik" required>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editNamaUsaha" class="form-label">Nama Usaha *</label>
+                  <input type="text" class="form-control" id="editNamaUsaha" required>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editJenisUsaha" class="form-label">Jenis Usaha *</label>
+                  <select class="form-select" id="editJenisUsaha" required>
+                    <option value="">Pilih Jenis Usaha</option>
+                    <option value="Makanan & Minuman">Makanan & Minuman</option>
+                    <option value="Fashion & Pakaian">Fashion & Pakaian</option>
+                    <option value="Jasa & Servis">Jasa & Servis</option>
+                    <option value="Retail & Toko">Retail & Toko</option>
+                    <option value="Pertanian & Perikanan">Pertanian & Perikanan</option>
+                    <option value="Teknologi & Elektronik">Teknologi & Elektronik</option>
+                    <option value="Lainnya">Lainnya</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label for="editNomorHp" class="form-label">Nomor HP *</label>
+                  <input type="tel" class="form-control" id="editNomorHp" required>
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="editLokasiUsaha" class="form-label">Lokasi Usaha *</label>
+              <textarea class="form-control" id="editLokasiUsaha" rows="3" required></textarea>
+              <div class="form-text">Lokasi akan digunakan untuk menampilkan di peta sebaran</div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-warning" onclick="updateBusiness()">
+            <i class="fas fa-save"></i> Update Data
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Konfirmasi Delete -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="deleteConfirmLabel"><i class="fas fa-exclamation-triangle"></i> Konfirmasi Hapus</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <p id="deleteConfirmMessage">Apakah Anda yakin ingin menghapus data ini?</p>
+          <div id="multipleDeleteInfo" style="display: none;">
+            <div class="alert alert-warning">
+              <i class="fas fa-info-circle"></i>
+              <strong>Perhatian:</strong> Anda akan menghapus <span id="selectedCount">0</span> data yang dipilih.
+            </div>
+          </div>
+          <div id="allDeleteInfo" style="display: none;">
+            <div class="alert alert-danger">
+              <i class="fas fa-exclamation-triangle"></i>
+              <strong>PERINGATAN:</strong> Anda akan menghapus SEMUA data usaha. Tindakan ini tidak dapat dibatalkan!
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteButton">
+            <i class="fas fa-trash"></i> Ya, Hapus
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Add User -->
+  <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-success text-white">
+          <h5 class="modal-title" id="addUserModalLabel"><i class="fas fa-user-plus"></i> Tambah User Baru</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addUserForm">
+            <div class="mb-3">
+              <label for="newUsername" class="form-label">Username *</label>
+              <input type="text" class="form-control" id="newUsername" placeholder="Masukkan username" required>
+            </div>
+            <div class="mb-3">
+              <label for="newPassword" class="form-label">Password *</label>
+              <input type="password" class="form-control" id="newPassword" placeholder="Masukkan password" required>
+            </div>
+            <div class="mb-3">
+              <label for="newNamaLengkap" class="form-label">Nama Lengkap *</label>
+              <input type="text" class="form-control" id="newNamaLengkap" placeholder="Masukkan nama lengkap" required>
+            </div>
+            <div class="mb-3">
+              <label for="newRole" class="form-label">Role *</label>
+              <select class="form-select" id="newRole" required>
+                <option value="">Pilih Role</option>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="newStatus" class="form-label">Status</label>
+              <select class="form-select" id="newStatus">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="newKeterangan" class="form-label">Keterangan</label>
+              <textarea class="form-control" id="newKeterangan" rows="2" placeholder="Keterangan tambahan"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-success" onclick="addUser()">Tambah User</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Edit User -->
+  <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-warning text-white">
+          <h5 class="modal-title" id="editUserModalLabel"><i class="fas fa-user-edit"></i> Edit User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editUserForm">
+            <input type="hidden" id="editUserRowId">
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <input type="text" class="form-control" id="editUserUsername" readonly>
+              <small class="form-text text-muted">Username tidak dapat diubah</small>
+            </div>
+            <div class="mb-3">
+              <label for="editUserPassword" class="form-label">Password (Kosongkan jika tidak diubah)</label>
+              <input type="password" class="form-control" id="editUserPassword" placeholder="Masukkan password baru">
+            </div>
+            <div class="mb-3">
+              <label for="editUserNamaLengkap" class="form-label">Nama Lengkap *</label>
+              <input type="text" class="form-control" id="editUserNamaLengkap" required>
+            </div>
+            <div class="mb-3">
+              <label for="editUserRole" class="form-label">Role *</label>
+              <select class="form-select" id="editUserRole" required>
+                <option value="admin">Admin</option>
+                <option value="user">User</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editUserStatus" class="form-label">Status</label>
+              <select class="form-select" id="editUserStatus">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editUserKeterangan" class="form-label">Keterangan</label>
+              <textarea class="form-control" id="editUserKeterangan" rows="2"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-warning" onclick="updateUser()">Update User</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -377,25 +1023,54 @@
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header bg-info text-white">
-          <h5 class="modal-title" id="tutorialLabel">Tutorial Pengisian Form Usaha</h5>
+          <h5 class="modal-title" id="tutorialLabel"><i class="fas fa-book"></i> Tutorial Pengisian Form Usaha</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
         </div>
         <div class="modal-body">
-          <ol>
-            <li><b>Isi Nama Pemilik</b> dengan nama lengkap anggota.</li>
-            <li><b>Isi Nama Usaha</b> sesuai usaha yang dijalankan.</li>
-            <li><b>Pilih Jenis Usaha</b> (contoh: makanan, minuman, fashion, jasa, dll).</li>
-            <li><b>Isi Lokasi Usaha</b>:
-              <ul>
-                <li>Klik peta untuk memilih lokasi, atau</li>
-                <li>Gunakan tombol <i>"Dapatkan Lokasi Saya"</i> agar otomatis.</li>
-              </ul>
-            </li>
-            <li><b>Isi Nomor HP</b> yang aktif agar bisa dihubungi.</li>
-            <li>Setelah lengkap, klik tombol <b>"Bismillah Cuan"</b> untuk menyimpan data.</li>
-            <li>Data akan muncul otomatis di tabel dan peta sebaran.</li>
-          </ol>
-          <p class="text-success"><b>Tips:</b> Pastikan koneksi internet aktif agar data tersimpan di sistem.</p>
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h5><i class="fas fa-user text-primary"></i> Data Pemilik</h5>
+                  <p>Isi dengan nama lengkap pemilik usaha yang terdaftar sebagai anggota GP Ansor.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h5><i class="fas fa-store text-success"></i> Data Usaha</h5>
+                  <p>Isi nama usaha sesuai dengan yang dijalankan. Gunakan nama yang mudah dikenali.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h5><i class="fas fa-tags text-warning"></i> Jenis Usaha</h5>
+                  <p>Pilih kategori yang paling sesuai dengan jenis usaha yang dijalankan.</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card mb-3">
+                <div class="card-body">
+                  <h5><i class="fas fa-map-marker-alt text-danger"></i> Lokasi Usaha</h5>
+                  <p>Tentukan lokasi dengan klik peta atau gunakan tombol "Dapatkan Lokasi Saya".</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="alert alert-success">
+            <h6><i class="fas fa-lightbulb"></i> Tips Penting:</h6>
+            <ul class="mb-0">
+              <li>Pastikan koneksi internet aktif saat mengirim data</li>
+              <li>Gunakan nomor HP yang aktif untuk memudahkan komunikasi</li>
+              <li>Data akan otomatis muncul di peta sebaran setelah disimpan</li>
+              <li>Admin dapat mengedit atau menghapus data jika diperlukan</li>
+            </ul>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -409,7 +1084,7 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header bg-success text-white">
-          <h5 class="modal-title" id="kontakAdminLabel">Kontak Admin via WhatsApp</h5>
+          <h5 class="modal-title" id="kontakAdminLabel"><i class="fas fa-phone"></i> Kontak Admin via WhatsApp</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
         </div>
         <div class="modal-body">
@@ -430,7 +1105,9 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="button" class="btn btn-success" onclick="kirimWAAdmin()">Kirim ke Admin</button>
+          <button type="button" class="btn btn-success" onclick="kirimWAAdmin()">
+            <i class="fab fa-whatsapp"></i> Kirim ke Admin
+          </button>
         </div>
       </div>
     </div>
@@ -438,6 +1115,9 @@
 
   <!-- Notifikasi -->
   <div id="notification" class="notification"></div>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <!-- JavaScript -->
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -447,39 +1127,761 @@
   <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <!-- Tambahkan EmailJS SDK -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
 
   <script>
-    // Inisialisasi EmailJS (Ganti dengan USER_ID kamu)
-    emailjs.init("YOUR_USER_ID");
-
     // Variabel global
     let businesses = [];
+    let users = [];
     let map;
     let marker;
     let mapSebaran = null;
     let markersGroup;
     let dataTable;
-    let allMarkers = []; // Menyimpan semua marker untuk pencarian
-    let lastDataLength = 0; // Menyimpan panjang data sebelumnya untuk deteksi perubahan
+    let usersTable;
+    let allMarkers = [];
+    let lastDataLength = 0;
+    let isFetching = false;
+    let adminToken = localStorage.getItem('adminToken') || null;
+    let currentUser = null;
+    let selectedBusinesses = new Set();
+    let currentDeleteAction = null;
+
+    // URL Google Apps Script Web App
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxpZ23Xa2u6hgoSfWDUMZaC5ixf5JFzwQ0E-7UzQoOsyiiRY_z2S2u3GPGBx_iYdjmFEw/exec';
 
     // Inisialisasi peta dan data saat halaman dimuat
     window.onload = function() {
       initMap();
       fetchData();
+      checkAdminStatus();
+      
+      // Auto refresh data setiap 30 detik
+      setInterval(fetchData, 30000);
     };
 
+    // ==================== FUNGSI SISTEM LOGIN ====================
+
+    // Fungsi untuk mengecek status admin
+    function checkAdminStatus() {
+      if (adminToken) {
+        // Verifikasi token dengan server
+        fetch(`${SCRIPT_URL}?action=checkAuth&token=${adminToken}`)
+          .then(response => response.json())
+          .then(data => {
+            if (data.valid) {
+              currentUser = data.user;
+              showAdminUI();
+              fetchUsers(); // Load users data
+            } else {
+              logout();
+            }
+          })
+          .catch(() => logout());
+      }
+    }
+
+    // Fungsi untuk menampilkan UI admin
+    function showAdminUI() {
+      document.getElementById('loginSection').style.display = 'none';
+      document.getElementById('adminSection').style.display = 'block';
+      document.getElementById('adminBadge').textContent = currentUser.username;
+      document.body.classList.add('logged-in');
+    }
+
+    // Fungsi untuk menyembunyikan UI admin
+    function hideAdminUI() {
+      document.getElementById('loginSection').style.display = 'block';
+      document.getElementById('adminSection').style.display = 'none';
+      document.body.classList.remove('logged-in');
+    }
+
+    // Fungsi login
+    function login() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (!username || !password) {
+        showNotification('Username dan password harus diisi', 'error');
+        return;
+      }
+
+      const formData = new URLSearchParams({
+        action: 'login',
+        username: username,
+        password: password
+      });
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          adminToken = data.token;
+          localStorage.setItem('adminToken', adminToken);
+          currentUser = { username: username, role: data.role };
+          showNotification('Login berhasil!', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('loginModal')).hide();
+          showAdminUI();
+          fetchUsers(); // Load users data
+          fetchData(); // Refresh data untuk menampilkan kolom aksi
+        } else {
+          showNotification('Login gagal: ' + data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Login error:', error);
+        showNotification('Terjadi kesalahan saat login', 'error');
+      });
+    }
+
+    // Fungsi logout
+    function logout() {
+      adminToken = null;
+      currentUser = null;
+      localStorage.removeItem('adminToken');
+      hideAdminUI();
+      showNotification('Anda telah logout', 'info');
+      fetchData(); // Refresh data untuk menyembunyikan kolom aksi
+    }
+
+    // Fungsi untuk menampilkan modal login
+    function showLoginModal() {
+      const loginModal = new bootstrap.Modal(document.getElementById('loginModal'));
+      loginModal.show();
+    }
+
+    // ==================== FUNGSI USER MANAGEMENT ====================
+
+    // Fungsi untuk menampilkan user management
+    function showUserManagement() {
+      fetchUsers();
+      // Scroll to user management section
+      document.querySelector('.user-management-section').scrollIntoView({ 
+        behavior: 'smooth' 
+      });
+    }
+
+    // Fungsi untuk menampilkan modal tambah user
+    function showAddUserModal() {
+      document.getElementById('addUserForm').reset();
+      const addUserModal = new bootstrap.Modal(document.getElementById('addUserModal'));
+      addUserModal.show();
+    }
+
+    // Fungsi untuk menampilkan modal edit user
+    function showEditUserModal(user) {
+      document.getElementById('editUserRowId').value = user.rowId;
+      document.getElementById('editUserUsername').value = user.username;
+      document.getElementById('editUserNamaLengkap').value = user.namaLengkap;
+      document.getElementById('editUserRole').value = user.role;
+      document.getElementById('editUserStatus').value = user.status;
+      document.getElementById('editUserKeterangan').value = user.keterangan || '';
+      document.getElementById('editUserPassword').value = '';
+      
+      const editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+      editUserModal.show();
+    }
+
+    // Fungsi untuk mengambil data users
+    function fetchUsers() {
+      if (!adminToken) return;
+
+      fetch(`${SCRIPT_URL}?action=getUsers&token=${adminToken}`)
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            users = data.users;
+            renderUsers(users);
+          } else {
+            showNotification('Gagal memuat data users: ' + data.message, 'error');
+            if (data.message.includes('Akses ditolak')) {
+              logout();
+            }
+          }
+        })
+        .catch(error => {
+          console.error('Error fetching users:', error);
+          showNotification('Gagal memuat data users', 'error');
+        });
+    }
+
+    // Fungsi untuk render users table
+    function renderUsers(usersData) {
+      const tableBody = document.querySelector("#usersTable tbody");
+      tableBody.innerHTML = "";
+
+      usersData.forEach((user, index) => {
+        const rowHtml = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${escapeHtml(user.username)}</td>
+            <td>${escapeHtml(user.namaLengkap)}</td>
+            <td><span class="badge ${user.role === 'admin' ? 'bg-primary' : 'bg-secondary'}">${user.role}</span></td>
+            <td><span class="badge ${user.status === 'active' ? 'bg-success' : 'bg-danger'}">${user.status}</span></td>
+            <td>${user.terakhirLogin || '-'}</td>
+            <td class="action-buttons">
+              <button class="btn btn-warning btn-action" onclick="showEditUserModal(${JSON.stringify(user).replace(/"/g, '&quot;')})">
+                <i class="fas fa-edit"></i> Edit
+              </button>
+              <button class="btn btn-danger btn-action" onclick="deleteUser(${user.rowId})" ${user.username === currentUser.username ? 'disabled' : ''}>
+                <i class="fas fa-trash"></i> Hapus
+              </button>
+            </td>
+          </tr>
+        `;
+        tableBody.innerHTML += rowHtml;
+      });
+
+      // Inisialisasi DataTable untuk users
+      if ($.fn.DataTable.isDataTable('#usersTable')) {
+        $('#usersTable').DataTable().destroy();
+      }
+
+      usersTable = $('#usersTable').DataTable({
+        "pageLength": 10,
+        "lengthMenu": [5, 10, 25, 50],
+        "language": {
+          "search": "Cari:",
+          "lengthMenu": "Tampilkan _MENU_ data per halaman",
+          "zeroRecords": "Tidak ada data yang ditemukan",
+          "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
+          "infoEmpty": "Tidak ada data tersedia",
+          "infoFiltered": "(disaring dari _MAX_ total data)"
+        }
+      });
+    }
+
+    // Fungsi untuk menambah user
+    function addUser() {
+      const username = document.getElementById('newUsername').value;
+      const password = document.getElementById('newPassword').value;
+      const namaLengkap = document.getElementById('newNamaLengkap').value;
+      const role = document.getElementById('newRole').value;
+      const status = document.getElementById('newStatus').value;
+      const keterangan = document.getElementById('newKeterangan').value;
+
+      if (!username || !password || !namaLengkap || !role) {
+        showNotification('Semua field wajib diisi!', 'error');
+        return;
+      }
+
+      const formData = new URLSearchParams({
+        action: 'addUser',
+        token: adminToken,
+        username: username,
+        password: password,
+        namaLengkap: namaLengkap,
+        role: role,
+        status: status,
+        keterangan: keterangan
+      });
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showNotification('User berhasil ditambahkan!', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+          fetchUsers(); // Refresh users data
+        } else {
+          showNotification('Gagal menambah user: ' + data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Add user error:', error);
+        showNotification('Terjadi kesalahan saat menambah user', 'error');
+      });
+    }
+
+    // Fungsi untuk update user
+    function updateUser() {
+      const rowId = document.getElementById('editUserRowId').value;
+      const password = document.getElementById('editUserPassword').value;
+      const namaLengkap = document.getElementById('editUserNamaLengkap').value;
+      const role = document.getElementById('editUserRole').value;
+      const status = document.getElementById('editUserStatus').value;
+      const keterangan = document.getElementById('editUserKeterangan').value;
+
+      const formData = new URLSearchParams({
+        action: 'updateUser',
+        token: adminToken,
+        rowId: rowId,
+        namaLengkap: namaLengkap,
+        role: role,
+        status: status,
+        keterangan: keterangan
+      });
+
+      // Tambahkan password hanya jika diisi
+      if (password) {
+        formData.append('password', password);
+      }
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showNotification('User berhasil diupdate!', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+          fetchUsers(); // Refresh users data
+        } else {
+          showNotification('Gagal update user: ' + data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Update user error:', error);
+        showNotification('Terjadi kesalahan saat update user', 'error');
+      });
+    }
+
+    // Fungsi untuk delete user
+    function deleteUser(rowId) {
+      if (!confirm('Apakah Anda yakin ingin menghapus user ini?')) {
+        return;
+      }
+
+      const formData = new URLSearchParams({
+        action: 'deleteUser',
+        token: adminToken,
+        rowId: rowId
+      });
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showNotification('User berhasil dihapus!', 'success');
+          fetchUsers(); // Refresh users data
+        } else {
+          showNotification('Gagal menghapus user: ' + data.message, 'error');
+        }
+      })
+      .catch(error => {
+        console.error('Delete user error:', error);
+        showNotification('Terjadi kesalahan saat menghapus user', 'error');
+      });
+    }
+
+    // ==================== FUNGSI DATA BUSINESS ====================
+
+    // Fungsi untuk mengambil data dari server
+    async function fetchData() {
+      if (isFetching) return;
+      
+      isFetching = true;
+      showLoading(true);
+
+      try {
+        const response = await fetch(SCRIPT_URL + '?action=getBusinesses&t=' + new Date().getTime());
+        
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        
+        const data = await response.json();
+
+        // Deteksi data baru
+        if (data.length > lastDataLength) {
+          const newEntriesCount = data.length - lastDataLength;
+          showNotification(`${newEntriesCount} data baru ditambahkan!`, 'info');
+        }
+        
+        lastDataLength = data.length;
+        businesses = data;
+        renderBusinesses(businesses);
+        updateStats(businesses);
+        
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        showNotification('Gagal memuat data', 'error');
+      } finally {
+        isFetching = false;
+        showLoading(false);
+      }
+    }
+
+    // Fungsi untuk render tabel businesses
+    function renderBusinesses(data) {
+      const tableBody = document.querySelector("#usahanTable tbody");
+      tableBody.innerHTML = "";
+
+      data.forEach((business, index) => {
+        const checkbox = adminToken ? `
+          <td class="admin-only">
+            <input type="checkbox" class="row-checkbox" value="${business.rowId}" onchange="toggleBusinessSelection(${business.rowId}, this.checked)">
+          </td>
+        ` : '<td class="admin-only"></td>';
+
+        const actionButtons = adminToken ? `
+          <td class="admin-only action-buttons">
+            <button class="btn btn-warning btn-action" onclick="showEditModal(${JSON.stringify(business).replace(/"/g, '&quot;')})">
+              <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-danger btn-action" onclick="confirmDeleteBusiness(${business.rowId}, '${escapeHtml(business.namaUsaha)}')">
+              <i class="fas fa-trash"></i> Hapus
+            </button>
+          </td>
+        ` : '<td class="admin-only"></td>';
+
+        const rowHtml = `
+          <tr id="row-${business.rowId}">
+            ${checkbox}
+            <td>${index + 1}</td>
+            <td>${escapeHtml(business.namaPemilik)}</td>
+            <td>${escapeHtml(business.namaUsaha)}</td>
+            <td>${escapeHtml(business.jenisUsaha)}</td>
+            <td>${escapeHtml(business.lokasiUsaha)}</td>
+            <td>${escapeHtml(business.nomorHp)}</td>
+            ${actionButtons}
+          </tr>
+        `;
+        tableBody.innerHTML += rowHtml;
+      });
+
+      // Reset selection
+      selectedBusinesses.clear();
+      updateBulkActionsToolbar();
+
+      // Inisialisasi DataTable
+      if ($.fn.DataTable.isDataTable('#usahanTable')) {
+        $('#usahanTable').DataTable().destroy();
+      }
+
+      dataTable = $('#usahanTable').DataTable({
+        "pageLength": 10,
+        "lengthMenu": [5, 10, 25, 50],
+        "language": {
+          "search": "Cari:",
+          "lengthMenu": "Tampilkan _MENU_ data per halaman",
+          "zeroRecords": "Tidak ada data yang ditemukan",
+          "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
+          "infoEmpty": "Tidak ada data tersedia",
+          "infoFiltered": "(disaring dari _MAX_ total data)"
+        }
+      });
+    }
+
+    // Fungsi untuk menampilkan modal edit business
+    function showEditModal(business) {
+      document.getElementById('editRowId').value = business.rowId;
+      document.getElementById('editNamaPemilik').value = business.namaPemilik;
+      document.getElementById('editNamaUsaha').value = business.namaUsaha;
+      document.getElementById('editJenisUsaha').value = business.jenisUsaha;
+      document.getElementById('editNomorHp').value = business.nomorHp;
+      document.getElementById('editLokasiUsaha').value = business.lokasiUsaha;
+      
+      const editModal = new bootstrap.Modal(document.getElementById('editModal'));
+      editModal.show();
+      
+      // Focus ke field pertama
+      setTimeout(() => {
+        document.getElementById('editNamaPemilik').focus();
+      }, 500);
+    }
+
+    // Fungsi untuk update business
+    function updateBusiness() {
+      const rowId = document.getElementById('editRowId').value;
+      const formData = new URLSearchParams({
+        action: 'updateBusiness',
+        token: adminToken,
+        rowId: rowId,
+        namaPemilik: document.getElementById('editNamaPemilik').value,
+        namaUsaha: document.getElementById('editNamaUsaha').value,
+        jenisUsaha: document.getElementById('editJenisUsaha').value,
+        nomorHp: document.getElementById('editNomorHp').value,
+        lokasiUsaha: document.getElementById('editLokasiUsaha').value,
+        lokasiMap: document.getElementById('editLokasiUsaha').value
+      });
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          showNotification('Data berhasil diupdate!', 'success');
+          bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+          fetchData(); // Refresh data
+        } else {
+          showNotification('Gagal update: ' + data.message, 'error');
+          if (data.message.includes('Akses ditolak')) {
+            logout();
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Update error:', error);
+        showNotification('Terjadi kesalahan saat update', 'error');
+      });
+    }
+
+    // ==================== FUNGSI SELECTION MANAGEMENT ====================
+
+    // Fungsi untuk toggle select all
+    function toggleSelectAll(checkbox) {
+      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      rowCheckboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+        toggleBusinessSelection(parseInt(cb.value), checkbox.checked);
+      });
+    }
+
+    // Fungsi untuk toggle selection individual business
+    function toggleBusinessSelection(rowId, isSelected) {
+      if (isSelected) {
+        selectedBusinesses.add(rowId);
+        document.querySelector(`#row-${rowId}`).classList.add('table-primary');
+      } else {
+        selectedBusinesses.delete(rowId);
+        document.querySelector(`#row-${rowId}`).classList.remove('table-primary');
+        document.getElementById('selectAllCheckbox').checked = false;
+      }
+      updateBulkActionsToolbar();
+    }
+
+    // Fungsi untuk update bulk actions toolbar
+    function updateBulkActionsToolbar() {
+      const toolbar = document.getElementById('bulkActionsToolbar');
+      const countElement = document.getElementById('selectedItemsCount');
+      
+      if (selectedBusinesses.size > 0) {
+        toolbar.style.display = 'block';
+        countElement.textContent = selectedBusinesses.size;
+      } else {
+        toolbar.style.display = 'none';
+      }
+    }
+
+    // Fungsi untuk clear selection
+    function clearSelection() {
+      selectedBusinesses.clear();
+      const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+      rowCheckboxes.forEach(cb => {
+        cb.checked = false;
+        const rowId = parseInt(cb.value);
+        document.querySelector(`#row-${rowId}`).classList.remove('table-primary');
+      });
+      document.getElementById('selectAllCheckbox').checked = false;
+      updateBulkActionsToolbar();
+    }
+
+    // ==================== FUNGSI DELETE OPERATIONS ====================
+
+    // Fungsi untuk konfirmasi delete single business
+    function confirmDeleteBusiness(rowId, businessName) {
+      currentDeleteAction = {
+        type: 'single',
+        rowId: rowId
+      };
+      
+      document.getElementById('deleteConfirmMessage').innerHTML = 
+        `Apakah Anda yakin ingin menghapus usaha <strong>"${escapeHtml(businessName)}"</strong>?`;
+      document.getElementById('multipleDeleteInfo').style.display = 'none';
+      document.getElementById('allDeleteInfo').style.display = 'none';
+      
+      const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+      deleteModal.show();
+    }
+
+    // Fungsi untuk konfirmasi delete selected businesses
+    function deleteSelectedBusinesses() {
+      if (selectedBusinesses.size === 0) {
+        showNotification('Tidak ada data yang dipilih', 'error');
+        return;
+      }
+      
+      currentDeleteAction = {
+        type: 'multiple',
+        rowIds: Array.from(selectedBusinesses)
+      };
+      
+      document.getElementById('deleteConfirmMessage').textContent = 
+        'Apakah Anda yakin ingin menghapus data yang dipilih?';
+      document.getElementById('selectedCount').textContent = selectedBusinesses.size;
+      document.getElementById('multipleDeleteInfo').style.display = 'block';
+      document.getElementById('allDeleteInfo').style.display = 'none';
+      
+      const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+      deleteModal.show();
+    }
+
+    // Fungsi untuk konfirmasi delete all businesses
+    function confirmDeleteAll() {
+      if (businesses.length === 0) {
+        showNotification('Tidak ada data untuk dihapus', 'info');
+        return;
+      }
+      
+      currentDeleteAction = {
+        type: 'all'
+      };
+      
+      document.getElementById('deleteConfirmMessage').textContent = 
+        'Apakah Anda yakin ingin menghapus semua data usaha?';
+      document.getElementById('multipleDeleteInfo').style.display = 'none';
+      document.getElementById('allDeleteInfo').style.display = 'block';
+      
+      const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+      deleteModal.show();
+    }
+
+    // Fungsi untuk execute delete berdasarkan type
+    function executeDelete() {
+      if (!currentDeleteAction) return;
+
+      let formData;
+      
+      switch (currentDeleteAction.type) {
+        case 'single':
+          formData = new URLSearchParams({
+            action: 'deleteBusiness',
+            token: adminToken,
+            rowId: currentDeleteAction.rowId
+          });
+          break;
+          
+        case 'multiple':
+          formData = new URLSearchParams({
+            action: 'deleteBusinesses',
+            token: adminToken,
+            rowIds: JSON.stringify(currentDeleteAction.rowIds)
+          });
+          break;
+          
+        case 'all':
+          formData = new URLSearchParams({
+            action: 'deleteAllBusinesses',
+            token: adminToken
+          });
+          break;
+      }
+
+      fetch(SCRIPT_URL, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.status === 'success') {
+          let message = '';
+          switch (currentDeleteAction.type) {
+            case 'single':
+              message = 'Data berhasil dihapus!';
+              break;
+            case 'multiple':
+              message = `${currentDeleteAction.rowIds.length} data berhasil dihapus!`;
+              break;
+            case 'all':
+              message = 'Semua data berhasil dihapus!';
+              break;
+          }
+          
+          showNotification(message, 'success');
+          bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal')).hide();
+          fetchData(); // Refresh data
+          clearSelection();
+        } else {
+          showNotification('Gagal menghapus: ' + data.message, 'error');
+          if (data.message.includes('Akses ditolak')) {
+            logout();
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Delete error:', error);
+        showNotification('Terjadi kesalahan saat menghapus', 'error');
+      });
+    }
+
+    // Event listener untuk tombol konfirmasi delete
+    document.getElementById('confirmDeleteButton').addEventListener('click', executeDelete);
+
+    // ==================== FUNGSI UI/UX ====================
+
+    // Fungsi untuk toggle form visibility
+    function toggleFormVisibility() {
+      const form = document.getElementById('addBusinessForm');
+      if (form.style.display === 'none') {
+        form.style.display = 'block';
+        setTimeout(() => {
+          map.invalidateSize();
+        }, 300);
+      } else {
+        form.style.display = 'none';
+      }
+    }
+
+    // Fungsi untuk toggle table visibility
+    function toggleTable() {
+      const tableContainer = document.getElementById('tableContainer');
+      const button = document.getElementById('toggleTableButton');
+
+      if (tableContainer.style.display === 'none') {
+        tableContainer.style.display = 'block';
+        button.innerHTML = '<i class="fas fa-table"></i> Sembunyikan Tabel';
+      } else {
+        tableContainer.style.display = 'none';
+        button.innerHTML = '<i class="fas fa-table"></i> Tampilkan Tabel';
+      }
+    }
+
+    // Fungsi untuk toggle map sebaran visibility
+    function toggleMapSebaran() {
+      const mapContainer = document.getElementById('mapSebaranContainer');
+      const button = document.getElementById('showMapButton');
+
+      if (mapContainer.style.display === 'none') {
+        mapContainer.style.display = 'block';
+        button.innerHTML = '<i class="fas fa-map"></i> Sembunyikan Peta Sebaran';
+        initMapSebaran();
+        setTimeout(() => {
+          if (mapSebaran) {
+            mapSebaran.invalidateSize();
+          }
+        }, 300);
+      } else {
+        mapContainer.style.display = 'none';
+        button.innerHTML = '<i class="fas fa-map"></i> Tampilkan Peta Sebaran';
+      }
+    }
+
+    // Fungsi untuk refresh data manual
+    function refreshData() {
+      showNotification('Memperbarui data...', 'info');
+      fetchData();
+      if (adminToken) {
+        fetchUsers();
+      }
+    }
+
+    // Fungsi untuk menampilkan loading spinner
+    function showLoading(show) {
+      document.getElementById('loadingSpinner').style.display = show ? 'block' : 'none';
+    }
+
+    // ==================== FUNGSI PETA ====================
+
+    // Fungsi untuk inisialisasi peta
     function initMap() {
-      // Inisialisasi peta dengan koordinat pusat Indonesia
       map = L.map('map').setView([-6.200000, 106.816666], 12);
 
-      // Tile layer OpenStreetMap
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
 
-      // Membuat marker yang dapat digeser
       marker = L.marker([-6.200000, 106.816666], { draggable: true }).addTo(map);
 
       marker.on('dragend', function(event) {
@@ -493,225 +1895,81 @@
         document.getElementById('lokasiUsaha').value = `Latitude: ${latLng.lat}, Longitude: ${latLng.lng}`;
       });
 
-      // Memperbarui ukuran peta
       map.invalidateSize();
     }
 
-    function getLocation() {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(function(position) {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-
-          // Set peta ke lokasi pengguna
-          map.setView([lat, lng], 15);
-          marker.setLatLng([lat, lng]);
-          document.getElementById('lokasiUsaha').value = `Latitude: ${lat}, Longitude: ${lng}`;
-          marker.bindPopup("Lokasi Anda").openPopup();
-          map.invalidateSize();
-        }, function() {
-          alert("Gagal mendapatkan lokasi Anda. Pastikan izin lokasi diaktifkan.");
-        });
-      } else {
-        alert("Geolocation tidak didukung oleh browser ini.");
+    // Fungsi untuk inisialisasi peta sebaran
+    function initMapSebaran() {
+      if (mapSebaran) {
+        mapSebaran.remove();
+        mapSebaran = null;
       }
-    }
 
-    // Ambil data dari Google Sheets
-    function fetchData() {
-      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec')
-        .then(response => response.json())
-        .then(data => {
-          // Deteksi apakah ada data baru
-          if (data.length > lastDataLength) {
-            const newEntriesCount = data.length - lastDataLength;
-            showNotification(`Data baru masuk! ${newEntriesCount} entri baru ditambahkan.`, 'info');
+      mapSebaran = L.map('mapSebaran').setView([-6.200000, 106.816666], 12);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(mapSebaran);
+
+      markersGroup = L.markerClusterGroup();
+      mapSebaran.addLayer(markersGroup);
+      allMarkers = [];
+
+      // Gunakan data yang sudah di-load, tidak fetch ulang
+      let validMarkersCount = 0;
+      
+      businesses.forEach(row => {
+        if (row.lokasiMap) {
+          let coords = extractCoordinates(row.lokasiMap);
+          
+          if (coords && coords.lat && coords.lng) {
+            let lat = coords.lat;
+            let lng = coords.lng;
+
+            // Validasi koordinat Indonesia
+            if (lat >= -11 && lat <= 6 && lng >= 95 && lng <= 141) {
+              const gmapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+
+              let marker = L.marker([lat, lng]).bindPopup(`
+                <div class="p-2">
+                  <h5><strong>${row.namaUsaha || 'Tidak ada nama'}</strong></h5>
+                  <p><strong>Pemilik:</strong> ${row.namaPemilik || 'Tidak ada'}</p>
+                  <p><strong>Jenis:</strong> ${row.jenisUsaha || 'Tidak ada'}</p>
+                  <p><strong>HP:</strong> ${row.nomorHp || 'Tidak ada'}</p>
+                  <a href="${gmapsUrl}" target="_blank" class="btn btn-sm btn-primary mt-2">Lihat di Google Maps</a>
+                </div>
+              `);
+
+              marker.feature = {
+                properties: {
+                  namaUsaha: row.namaUsaha || '',
+                  namaPemilik: row.namaPemilik || '',
+                  jenisUsaha: row.jenisUsaha || '',
+                  nomorHp: row.nomorHp || ''
+                }
+              };
+
+              markersGroup.addLayer(marker);
+              allMarkers.push(marker);
+              validMarkersCount++;
+            }
           }
-          
-          // Update lastDataLength
-          lastDataLength = data.length;
-          
-          businesses = data;
-          renderBusinesses(businesses);
-        })
-        .catch(error => console.error('Error fetching  ', error));
-    }
-
-    // Render Tabel Usaha dengan DataTables
-    function renderBusinesses(data) {
-      const tableBody = document.querySelector("#usahanTable tbody");
-      tableBody.innerHTML = "";
-
-      data.forEach((row, index) => {
-        const rowHtml = `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${row.namaPemilik}</td>
-            <td>${row.namaUsaha}</td>
-            <td>${row.jenisUsaha}</td>
-            <td>${row.lokasiUsaha}</td>
-            <td>${row.nomorHp}</td>
-          </tr>
-        `;
-        tableBody.innerHTML += rowHtml;
-      });
-
-      // Inisialisasi atau refresh DataTable
-      if ($.fn.DataTable.isDataTable('#usahanTable')) {
-        // Simpan status sorting sebelum menghancurkan
-        const currentOrder = dataTable.order();
-        const currentPage = dataTable.page();
-        const currentSearch = dataTable.search();
-        const currentLength = dataTable.page.len();
-        
-        // Simpan ke localStorage
-        localStorage.setItem('dataTableOrder', JSON.stringify(currentOrder));
-        localStorage.setItem('dataTablePage', currentPage);
-        localStorage.setItem('dataTableSearch', currentSearch);
-        localStorage.setItem('dataTableLength', currentLength);
-
-        $('#usahanTable').DataTable().destroy();
-      }
-
-      // Ambil status sorting dari localStorage jika ada
-      const savedOrder = JSON.parse(localStorage.getItem('dataTableOrder')) || [[0, 'asc']]; // Default ke kolom pertama, ASC
-      const savedPage = localStorage.getItem('dataTablePage') || 0;
-      const savedSearch = localStorage.getItem('dataTableSearch') || '';
-      const savedLength = localStorage.getItem('dataTableLength') || 10;
-
-      dataTable = $('#usahanTable').DataTable({
-        "pageLength": parseInt(savedLength),
-        "lengthMenu": [5, 10, 25, 50],
-        "order": savedOrder, // Gunakan sorting yang disimpan
-        "search": {
-          "search": savedSearch
-        },
-        "language": {
-          "search": "Cari:",
-          "lengthMenu": "Tampilkan _MENU_ data per halaman",
-          "zeroRecords": "Tidak ada data yang ditemukan",
-          "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
-          "infoEmpty": "Tidak ada data tersedia",
-          "infoFiltered": "(disaring dari _MAX_ total data)"
         }
       });
-
-      // Setelah inisialisasi, pindah ke halaman yang disimpan
-      dataTable.page(parseInt(savedPage)).draw('page');
-
-      // Kita tidak perlu memanggil setupColumnFilters() karena filter dihapus
-    }
-
-    // Fungsi untuk menampilkan notifikasi
-    function showNotification(message, type) {
-      const notification = document.getElementById('notification');
-      notification.textContent = message;
-      notification.className = 'notification ' + type; // Tambahkan kelas tipe notifikasi
-      notification.classList.add('show');
-
-      setTimeout(() => {
-        notification.classList.remove('show');
-      }, 5000); // Notifikasi hilang setelah 5 detik
-    }
-
-    // Kirim WA Admin
-    function kirimWAAdmin() {
-      const nama = document.getElementById("adminNama").value;
-      const alamat = document.getElementById("adminAlamat").value;
-      const kendala = document.getElementById("adminKendala").value;
-
-      if (!nama || !alamat || !kendala) {
-        alert("Harap isi semua field sebelum mengirim pesan!");
-        return;
+      
+      if (validMarkersCount > 0) {
+        mapSebaran.fitBounds(markersGroup.getBounds());
+      } else {
+        mapSebaran.setView([-6.200000, 106.816666], 12);
       }
 
-      // Nomor admin (format internasional tanpa +)
-      const adminNumber = "6283866675521";
-      const pesan = `Nama: ${encodeURIComponent(nama)}%0AAlamat: ${encodeURIComponent(alamat)}%0AKendala: ${encodeURIComponent(kendala)}`;
-      const url = `https://wa.me/${adminNumber}?text=${pesan}`;
-
-      window.open(url, "_blank");
+      setupMapSearch();
     }
 
-    // Submit form
-    document.getElementById("usahanForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-
-      const namaPemilik = document.getElementById("namaPemilik").value;
-      const namaUsaha = document.getElementById("namaUsaha").value;
-      const jenisUsaha = document.getElementById("jenisUsaha").value;
-      const lokasiUsaha = document.getElementById("lokasiUsaha").value;
-      const nomorHp = document.getElementById("nomorHp").value;
-
-      // Validasi nomor HP
-      if (!/^[0-9\-\+\s\(\)]+$/.test(nomorHp)) {
-        alert("Nomor HP hanya boleh berisi angka dan simbol (+, -, spasi, kurung)");
-        return;
-      }
-
-      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec', {
-        method: 'POST',
-        body: new URLSearchParams({
-          'namaPemilik': namaPemilik,
-          'namaUsaha': namaUsaha,
-          'jenisUsaha': jenisUsaha,
-          'lokasiUsaha': lokasiUsaha,
-          'nomorHp': nomorHp,
-          'lokasiMap': lokasiUsaha
-        })
-      })
-      .then(response => response.text())
-      .then(data => {
-        alert('Data telah disimpan!');
-        fetchData(); // Update tabel setelah data berhasil disimpan
-
-        // Reset form
-        document.getElementById("usahanForm").reset();
-        
-        // Menampilkan pesan Terima Kasih dengan animasi
-        document.getElementById('thankYouMessage').style.display = 'block';
-        setTimeout(() => {
-          document.getElementById('thankYouMessage').style.display = 'none';
-        }, 3000);
-
-        // Kirim notifikasi email
-        sendEmailNotification(namaPemilik, namaUsaha, jenisUsaha, lokasiUsaha, nomorHp);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Terima kesalahan saat menyimpan data. Silakan coba lagi.');
-      });
-    });
-
-    // Fungsi untuk mengirim notifikasi email
-    function sendEmailNotification(namaPemilik, namaUsaha, jenisUsaha, lokasiUsaha, nomorHp) {
-        // Parameter untuk template EmailJS
-        const templateParams = {
-            to_email: 'sewon.ansor@gmail.com',
-            from_name: 'Sistem Pendataan Usaha',
-            nama_pemilik: namaPemilik,
-            nama_usaha: namaUsaha,
-            jenis_usaha: jenisUsaha,
-            lokasi_usaha: lokasiUsaha,
-            nomor_hp: nomorHp
-        };
-
-        // Ganti dengan SERVICE_ID dan TEMPLATE_ID kamu
-        emailjs.send('YOUR_SERVICE_ID', 'YOUR_TEMPLATE_ID', templateParams)
-            .then(function(response) {
-                console.log('Email notifikasi berhasil dikirim!', response.status, response.text);
-                // Bisa tambahkan notifikasi sukses di sini jika diinginkan
-            }, function(error) {
-                console.error('Gagal mengirim email notifikasi:', error);
-                // Bisa tambahkan notifikasi error di sini jika diinginkan
-            });
-    }
-
-    // Fungsi untuk mengekstrak koordinat dari berbagai format
+    // Fungsi untuk mengekstrak koordinat dari string
     function extractCoordinates(locationString) {
       if (!locationString) return null;
       
-      // Coba ekstrak dari format "Latitude: X, Longitude: Y"
       let latMatch = locationString.match(/Latitude:\s*(-?\d+\.?\d*)/i);
       let lngMatch = locationString.match(/Longitude:\s*(-?\d+\.?\d*)/i);
       
@@ -722,7 +1980,6 @@
         };
       }
       
-      // Coba ekstrak dari format koordinat saja (dua angka desimal)
       let coordMatch = locationString.match(/(-?\d+\.?\d*)[,\s]+(-?\d+\.?\d*)/);
       if (coordMatch && coordMatch.length >= 3) {
         return {
@@ -731,7 +1988,6 @@
         };
       }
       
-      // Coba ekstrak angka desimal saja
       let numbers = locationString.match(/-?\d+\.?\d*/g);
       if (numbers && numbers.length >= 2) {
         return {
@@ -743,111 +1999,18 @@
       return null;
     }
 
-    // Peta Sebaran Usaha dengan pencarian manual
-    function initMapSebaran() {
-      // Hapus peta sebaran yang sudah ada jika ada
-      if (mapSebaran) {
-        mapSebaran.remove();
-        mapSebaran = null;
-      }
-
-      // Inisialisasi peta sebaran baru
-      mapSebaran = L.map('mapSebaran').setView([-6.200000, 106.816666], 12);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-      }).addTo(mapSebaran);
-
-      markersGroup = L.markerClusterGroup();
-      mapSebaran.addLayer(markersGroup);
-      allMarkers = []; // Reset array markers
-
-      fetch('https://script.google.com/macros/s/AKfycbydjbuQJ9MA_ZxRQALkrvE-eEBgoSx4Dr5B-KHMAPSk0DXwQlUSbtGDiBH_Q-tr5WS5bw/exec')
-        .then(response => response.json())
-        .then(data => {
-          markersGroup.clearLayers();
-          allMarkers = []; // Reset array markers
-
-          let validMarkersCount = 0;
-          
-          data.forEach(row => {
-            if (row.lokasiMap) {
-              // Gunakan fungsi extractCoordinates yang baru
-              let coords = extractCoordinates(row.lokasiMap);
-              
-              if (coords && coords.lat && coords.lng) {
-                let lat = coords.lat;
-                let lng = coords.lng;
-
-                // Validasi koordinat (Indonesia sekitar -11 sampai 6 untuk latitude, 95 sampai 141 untuk longitude)
-                if (lat >= -11 && lat <= 6 && lng >= 95 && lng <= 141) {
-                  const gmapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-
-                  // Buat marker dengan popup
-                  let marker = L.marker([lat, lng]).bindPopup(`
-                    <b>${row.namaUsaha || 'Tidak ada nama'}</b><br>
-                    <b>Pemilik:</b> ${row.namaPemilik || 'Tidak ada'}<br>
-                    <b>Jenis:</b> ${row.jenisUsaha || 'Tidak ada'}<br>
-                    <b>HP:</b> ${row.nomorHp || 'Tidak ada'}<br>
-                    <a href="${gmapsUrl}" target="_blank">Lihat di Google Maps</a>
-                  `);
-
-                  // Simpan data di properti marker untuk pencarian
-                  marker.feature = {
-                    properties: {
-                      namaUsaha: row.namaUsaha || '',
-                      namaPemilik: row.namaPemilik || '',
-                      jenisUsaha: row.jenisUsaha || '',
-                      nomorHp: row.nomorHp || ''
-                    }
-                  };
-
-                  markersGroup.addLayer(marker);
-                  allMarkers.push(marker); // Simpan ke array untuk pencarian
-                  validMarkersCount++;
-                } else {
-                  console.warn('Koordinat di luar Indonesia untuk:', row.namaUsaha, 'Lokasi:', row.lokasiMap);
-                }
-              } else {
-                console.warn('Koordinat tidak valid untuk:', row.namaUsaha, 'Lokasi:', row.lokasiMap);
-              }
-            } else {
-              console.warn('LokasiMap kosong untuk:', row.namaUsaha);
-            }
-          });
-          
-          if (validMarkersCount > 0) {
-            mapSebaran.fitBounds(markersGroup.getBounds());
-            console.log(`Berhasil menampilkan ${validMarkersCount} marker di peta`);
-          } else {
-            // Jika tidak ada marker yang valid, tetap di lokasi default
-            mapSebaran.setView([-6.200000, 106.816666], 12);
-            console.warn('Tidak ada marker yang valid untuk ditampilkan');
-          }
-
-          // Setelah semua marker dimuat, tambahkan event listener untuk pencarian
-          setupMapSearch();
-        })
-        .catch(error => console.error('Error fetching map ', error));
-    }
-
-    // Fungsi pencarian manual di peta
+    // Fungsi untuk setup pencarian di peta
     function setupMapSearch() {
         const searchInput = document.getElementById('mapSearchInput');
         
         searchInput.addEventListener('input', function(e) {
             const searchText = e.target.value.toLowerCase();
             
-            if (searchText.length === 0) {
-                // Jika input kosong, jangan lakukan apa-apa, biarkan semua marker terlihat
-                return;
-            }
+            if (searchText.length === 0) return;
 
-            // Cari marker yang cocok
             const matchingMarkers = allMarkers.filter(marker => {
                 const markerData = marker.feature?.properties || {};
                 
-                // Periksa apakah nilai adalah string sebelum memanggil toLowerCase
                 const namaUsaha = typeof markerData.namaUsaha === 'string' ? markerData.namaUsaha.toLowerCase() : '';
                 const namaPemilik = typeof markerData.namaPemilik === 'string' ? markerData.namaPemilik.toLowerCase() : '';
                 const jenisUsaha = typeof markerData.jenisUsaha === 'string' ? markerData.jenisUsaha.toLowerCase() : '';
@@ -861,67 +2024,168 @@
                 );
             });
 
-            // Jika hanya ada 1 hasil, langsung fokus ke lokasi itu
             if (matchingMarkers.length === 1) {
                 const latlng = matchingMarkers[0].getLatLng();
                 mapSebaran.setView(latlng, 16);
                 matchingMarkers[0].openPopup();
-            }
-            // Jika ada lebih dari 1 hasil, fokus ke area yang mencakup semua hasil
-            else if (matchingMarkers.length > 1) {
+            } else if (matchingMarkers.length > 1) {
                 const group = L.featureGroup(matchingMarkers);
                 mapSebaran.fitBounds(group.getBounds());
             }
         });
     }
 
-    // Toggle map visibility when button is clicked
-    function toggleMapSebaran() {
-      const mapContainer = document.getElementById('mapSebaranContainer');
-      const button = document.getElementById('showMapButton');
+    // Fungsi untuk get location
+    function getLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
 
-      if (mapContainer.style.display === 'none') {
-        mapContainer.style.display = 'block';
-        button.textContent = 'Sembunyikan Peta Sebaran';
-        initMapSebaran(); // Initialize map only when it is shown
-        setTimeout(() => {
-          if (mapSebaran) {
-            mapSebaran.invalidateSize(); // Update ukuran peta setelah ditampilkan
-          }
-        }, 300);
-      } else {
-        mapContainer.style.display = 'none';
-        button.textContent = 'Tampilkan Peta Sebaran';
-      }
-    }
-
-    // Toggle table visibility when button is clicked
-    function toggleTable() {
-      const tableContainer = document.getElementById('tableContainer');
-      const button = document.getElementById('toggleTableButton');
-
-      if (tableContainer.style.display === 'none') {
-        tableContainer.style.display = 'block';
-        button.textContent = 'Sembunyikan Tabel';
-      } else {
-        tableContainer.style.display = 'none';
-        button.textContent = 'Tampilkan Tabel';
-      }
-    }
-
-    // Toggle form visibility
-    function toggleFormVisibility() {
-      const form = document.getElementById('addBusinessForm');
-      if (form.style.display === 'none') {
-        form.style.display = 'block';
-        // Pastikan peta form di-update ukurannya
-        setTimeout(() => {
+          map.setView([lat, lng], 15);
+          marker.setLatLng([lat, lng]);
+          document.getElementById('lokasiUsaha').value = `Latitude: ${lat}, Longitude: ${lng}`;
+          marker.bindPopup("Lokasi Anda").openPopup();
           map.invalidateSize();
-        }, 300);
+        }, function() {
+          alert("Gagal mendapatkan lokasi Anda. Pastikan izin lokasi diaktifkan.");
+        });
       } else {
-        form.style.display = 'none';
+        alert("Geolocation tidak didukung oleh browser ini.");
       }
     }
+
+    // ==================== FUNGSI UTILITAS ====================
+
+    // Fungsi untuk mengupdate statistik
+    function updateStats(data) {
+      const total = data.length;
+      const food = data.filter(b => b.jenisUsaha && b.jenisUsaha.includes('Makanan')).length;
+      const service = data.filter(b => b.jenisUsaha && b.jenisUsaha.includes('Jasa')).length;
+      const other = total - food - service;
+      
+      document.getElementById('totalBusinesses').textContent = total;
+      document.getElementById('foodBusinesses').textContent = food;
+      document.getElementById('serviceBusinesses').textContent = service;
+      document.getElementById('otherBusinesses').textContent = other;
+    }
+
+    // Fungsi escape HTML untuk keamanan
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Fungsi untuk menampilkan notifikasi
+    function showNotification(message, type) {
+      const notification = document.getElementById('notification');
+      notification.textContent = message;
+      notification.className = 'notification ' + type;
+      notification.classList.add('show');
+
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 5000);
+    }
+
+    // Kirim WA Admin
+    function kirimWAAdmin() {
+      const nama = document.getElementById("adminNama").value;
+      const alamat = document.getElementById("adminAlamat").value;
+      const kendala = document.getElementById("adminKendala").value;
+
+      if (!nama || !alamat || !kendala) {
+        alert("Harap isi semua field sebelum mengirim pesan!");
+        return;
+      }
+
+      const adminNumber = "6283866675521";
+      const pesan = `Halo Admin, saya ingin melaporkan kendala:%0A%0ANama: ${encodeURIComponent(nama)}%0AAlamat: ${encodeURIComponent(alamat)}%0AKendala: ${encodeURIComponent(kendala)}`;
+      const url = `https://wa.me/${adminNumber}?text=${pesan}`;
+
+      window.open(url, "_blank");
+      
+      // Reset form dan tutup modal
+      document.getElementById("kontakAdminForm").reset();
+      bootstrap.Modal.getInstance(document.getElementById('kontakAdminModal')).hide();
+    }
+
+    // ==================== EVENT LISTENERS ====================
+
+    // Submit form untuk menambah business (tanpa login)
+    document.getElementById("usahanForm").addEventListener("submit", async function(event) {
+      event.preventDefault();
+
+      const submitButton = document.getElementById('submitButton');
+      const originalText = submitButton.textContent;
+      
+      submitButton.disabled = true;
+      submitButton.textContent = 'Menyimpan...';
+
+      const namaPemilik = document.getElementById("namaPemilik").value.trim();
+      const namaUsaha = document.getElementById("namaUsaha").value.trim();
+      const jenisUsaha = document.getElementById("jenisUsaha").value;
+      const lokasiUsaha = document.getElementById("lokasiUsaha").value.trim();
+      const nomorHp = document.getElementById("nomorHp").value.trim();
+
+      if (!namaPemilik || !namaUsaha || !jenisUsaha || !lokasiUsaha || !nomorHp) {
+        showNotification('Semua field wajib diisi!', 'error');
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+        return;
+      }
+
+      if (nomorHp && !/^[0-9\-\+\s\(\)]+$/.test(nomorHp)) {
+        showNotification('Nomor HP hanya boleh berisi angka dan simbol (+, -, spasi, kurung)', 'error');
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+        return;
+      }
+
+      try {
+        const formData = new URLSearchParams({
+          action: 'addBusiness',
+          'namaPemilik': namaPemilik,
+          'namaUsaha': namaUsaha,
+          'jenisUsaha': jenisUsaha,
+          'lokasiUsaha': lokasiUsaha,
+          'nomorHp': nomorHp,
+          'lokasiMap': lokasiUsaha
+        });
+
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+          showNotification('Data berhasil disimpan!', 'success');
+          fetchData();
+
+          document.getElementById("usahanForm").reset();
+          
+          document.getElementById('thankYouMessage').style.display = 'block';
+          setTimeout(() => {
+            document.getElementById('thankYouMessage').style.display = 'none';
+          }, 3000);
+
+          toggleFormVisibility();
+          
+        } else {
+          throw new Error(result.message);
+        }
+        
+      } catch (error) {
+        console.error('Error:', error);
+        showNotification('Gagal menyimpan data: ' + error.message, 'error');
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+      }
+    });
   </script>
 </body>
 </html>
